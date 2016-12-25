@@ -1,0 +1,32 @@
+diff --git a/include/xlsxwriter/third_party/ioapi.h b/include/xlsxwriter/third_party/ioapi.h
+index ba71ff7..091af4a 100644
+--- a/include/xlsxwriter/third_party/ioapi.h
++++ b/include/xlsxwriter/third_party/ioapi.h
+@@ -135,8 +135,9 @@ extern "C" {
+  #endif
+ #endif
+ 
+-
+-
++#ifndef OF
++  #define OF(args) args
++#endif
+ 
+ typedef voidpf   (ZCALLBACK *open_file_func)      OF((voidpf opaque, const char* filename, int mode));
+ typedef uLong    (ZCALLBACK *read_file_func)      OF((voidpf opaque, voidpf stream, void* buf, uLong size));
+diff --git a/third_party/minizip/ioapi.h b/third_party/minizip/ioapi.h
+index 43aaf6f..754f8ba 100644
+--- a/third_party/minizip/ioapi.h
++++ b/third_party/minizip/ioapi.h
+@@ -129,8 +129,9 @@ extern "C" {
+  #endif
+ #endif
+ 
+-
+-
++#ifndef OF
++  #define OF(args) args
++#endif
+ 
+ typedef voidpf   (ZCALLBACK *open_file_func)      OF((voidpf opaque, const char* filename, int mode));
+ typedef uLong    (ZCALLBACK *read_file_func)      OF((voidpf opaque, voidpf stream, void* buf, uLong size));

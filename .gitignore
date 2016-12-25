@@ -1,0 +1,6 @@
+*.so
+*.xlsx
+ext/xlsxwriter/Makefile
+ext/xlsxwriter/libxlsxwriter
+pkg
+tmp
