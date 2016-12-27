@@ -23,10 +23,8 @@ VALUE worksheet_write_blank_(VALUE self, VALUE row, VALUE col, VALUE format);
 // VALUE worksheet_write_formula_num_;
 VALUE worksheet_set_row_(VALUE self, VALUE row, VALUE opts);
 VALUE worksheet_set_column_(VALUE self, VALUE col_from, VALUE col_to, VALUE opts);
-// VALUE worksheet_insert_image_;
-// VALUE worksheet_insert_image_opt_;
-// VALUE worksheet_insert_chart_;
-// VALUE worksheet_insert_chart_opt_;
+VALUE worksheet_insert_image_(VALUE self, VALUE row, VALUE col, VALUE fname, VALUE opts);
+VALUE worksheet_insert_chart_(VALUE self, VALUE row, VALUE col, VALUE chart, VALUE opts);
 VALUE worksheet_merge_range_(VALUE self, VALUE row_from, VALUE col_from,
                              VALUE row_to, VALUE col_to, VALUE value, VALUE format);
 // VALUE worksheet_autofilter_;
@@ -34,6 +32,9 @@ VALUE worksheet_merge_range_(VALUE self, VALUE row_from, VALUE col_from,
 // VALUE worksheet_select_;
 // VALUE worksheet_hide_;
 // VALUE worksheet_set_first_sheet_;
+
+VALUE worksheet_gridlines_(VALUE self, VALUE value);
+
 
 lxw_col_t value_to_col(VALUE value);
 

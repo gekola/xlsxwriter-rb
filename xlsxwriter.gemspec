@@ -11,4 +11,6 @@ Gem::Specification.new do |s|
              *Dir['ext/xlsxwriter/libxlsxwriter/{src,third_party}/**/Makefile'],
              *Dir['ext/xlsxwriter/libxlsxwriter/{src,third_party,include}/**/*.{c,h}']].map(&:freeze)
   s.extensions = Dir['ext/**/extconf.rb'].freeze
+
+  s.add_development_dependency 'rake-compiler'
 end

@@ -14,6 +14,7 @@ void Init_xlsxwriter() {
   rb_define_method(cWorkbook, "free", workbook_release, 0);
   rb_define_method(cWorkbook, "add_worksheet", workbook_add_worksheet_, -1);
   rb_define_method(cWorkbook, "add_format", workbook_add_format_, 2);
+  rb_define_attr(cWorkbook, "font_sizes", 1, 0);
 
   rb_define_alloc_func(cWorksheet, worksheet_alloc);
   rb_define_method(cWorksheet, "initialize", worksheet_init, -1);
@@ -27,7 +28,11 @@ void Init_xlsxwriter() {
   rb_define_method(cWorksheet, "write_blank", worksheet_write_blank_, 3);
   rb_define_method(cWorksheet, "set_row", worksheet_set_row_, 2);
   rb_define_method(cWorksheet, "set_column", worksheet_set_column_, 3);
+  rb_define_method(cWorksheet, "insert_image", worksheet_insert_image_, 4);
+  rb_define_method(cWorksheet, "insert_chart", worksheet_insert_chart_, 4);
   rb_define_method(cWorksheet, "merge_range", worksheet_merge_range_, 6);
+
+  rb_define_method(cWorksheet, "gridlines=", worksheet_gridlines_, 1);
 
 #define MAP_LXW_FMT_CONST(name) rb_define_const(mXlsxFormat, #name, INT2NUM(LXW_##name))
   MAP_LXW_FMT_CONST(COLOR_BLACK);

@@ -38,7 +38,9 @@ workbook_init(int argc, VALUE *argv, VALUE self) {
         options.tmpdir = RSTRING_PTR(tmpdir);
     }
   }
+
   Data_Get_Struct(self, struct workbook, ptr);
+
   size_t len = RSTRING_LEN(argv[0]);
   ptr->path = malloc(len + 1);
   strncpy(ptr->path, RSTRING_PTR(argv[0]), len + 1);
@@ -47,6 +49,9 @@ workbook_init(int argc, VALUE *argv, VALUE self) {
   } else {
     ptr->workbook = workbook_new(ptr->path);
   }
+
+  rb_iv_set(self, "@font_sizes", rb_hash_new());
+
   return self;
 }
 
@@ -80,6 +85,7 @@ workbook_free(void *p) {
 VALUE
 workbook_add_worksheet_(int argc, VALUE *argv, VALUE self) {
   VALUE worksheet = Qnil;
+
   if (argc > 1) {
     rb_raise(rb_eArgError, "wrong number of arguments");
     return self;
@@ -110,10 +116,16 @@ workbook_add_format_(VALUE self, VALUE key, VALUE opts) {
   st_insert(ptr->formats, rb_to_id(key), (st_data_t)format);
   format_apply_opts(format, opts);
 
+  VALUE font_size = rb_hash_aref(opts, ID2SYM(rb_intern("font_size")));
+  if (!NIL_P(font_size)) {
+    rb_hash_aset(rb_iv_get(self, "@font_sizes"), key, font_size);
+  }
+
   return self;
 }
 
-lxw_format *workbook_get_format(VALUE self, VALUE key) {
+lxw_format *
+workbook_get_format(VALUE self, VALUE key) {
   struct workbook *ptr;
   lxw_format *format = NULL;
 
