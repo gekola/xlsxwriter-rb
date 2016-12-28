@@ -15,29 +15,25 @@ module XlsxComparable
           got_xml_str = got_zip.read(exp_entry.name)
 
           if %w(.png .jpeg .bmp .bin).include?(File.extname(exp_entry.name))
+            exp_xml_str.force_encoding('BINARY')
             assert_equal(got_xml_str, exp_xml_str)
             next
           end
 
           case exp_entry.name
           when 'docProps/core.xml'
-            exp_xml_str
-              .gsub!(/ ?John/, '')
-              .gsub!(/\d{4}-\d\d-\d\dT\d\d\:\d\d:\d\dZ/, '')
-            got_xml_str
-              .gsub!(/\d{4}-\d\d-\d\dT\d\d\:\d\d:\d\dZ/, '')
+            exp_xml_str.gsub!(/ ?John/, '')
+            exp_xml_str.gsub!(/\d{4}-\d\d-\d\dT\d\d\:\d\d:\d\dZ/, '')
+            got_xml_str.gsub!(/\d{4}-\d\d-\d\dT\d\d\:\d\d:\d\dZ/, '')
           when 'xl/workbook.xml'
-            exp_xml_str
-              .gsub!(/<workbookView[^>]*>/, '<workbookView/>')
-              .gsub!(/<calcPr[^>]*>/, '<calcPr/>')
-            got_xml_str
-              .gsub!(/<workbookView[^>]*>/, '<workbookView/>')
-              .gsub!(/<calcPr[^>]*>/, '<calcPr/>')
-          when /xl\/worksheets\/sheet\d+.xml'/
-            exp_xml_str
-              .gsub!(/horizontalDpi="200" /, '')
-              .gsub!(/verticalDpi="200" /, '')
-              .gsub!(/(<pageSetup[^>]*) r:id="rId1"/, '\1')
+            exp_xml_str.gsub!(/<workbookView[^>]*>/, '<workbookView/>')
+            exp_xml_str.gsub!(/<calcPr[^>]*>/, '<calcPr/>')
+            got_xml_str.gsub!(/<workbookView[^>]*>/, '<workbookView/>')
+            got_xml_str.gsub!(/<calcPr[^>]*>/, '<calcPr/>')
+          when /xl\/worksheets\/sheet\d+.xml/
+            exp_xml_str.gsub!(/horizontalDpi="200" /, '')
+            exp_xml_str.gsub!(/verticalDpi="200" /, '')
+            exp_xml_str.gsub!(/(<pageSetup[^>]*) r:id="rId1"/, '\1')
           when /xl\/charts\/chart\d+.xml/
             exp_xml_str.gsub!(/<c:pageMargins[^>]*>/, '<c:pageMargins/>')
             got_xml_str.gsub!(/<c:pageMargins[^>]*>/, '<c:pageMargins/>')
@@ -53,8 +49,8 @@ module XlsxComparable
 
           if ignore_elements.key?(exp_entry.name)
             patterns = ignore_elements[exp_entry.name]
-            exp_xml.filter! { |tag| patterns.none? { |pattern| tag =~ pattern } }
-            got_xml.filter! { |tag| patterns.none? { |pattern| tag =~ pattern } }
+            exp_xml.select! { |tag| patterns.none? { |pattern| tag.include? pattern } }
+            got_xml.select! { |tag| patterns.none? { |pattern| tag.include? pattern } }
           end
 
           if exp_entry.name == '[Content_Types].xml' || exp_entry.name =~ /.rels\z/

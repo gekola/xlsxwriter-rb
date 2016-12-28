@@ -31,10 +31,30 @@ VALUE worksheet_autofilter_(VALUE self, VALUE row_from, VALUE col_from,
                             VALUE row_to, VALUE col_to);
 VALUE worksheet_activate_(VALUE self);
 VALUE worksheet_select_(VALUE self);
-// VALUE worksheet_hide_;
-// VALUE worksheet_set_first_sheet_;
-
+VALUE worksheet_hide_(VALUE self);
+VALUE worksheet_set_first_sheet_(VALUE self);
+VALUE worksheet_freeze_panes_(VALUE self, VALUE row, VALUE col);
+VALUE worksheet_split_panes_(VALUE self, VALUE vertical, VALUE horizontal);
+VALUE worksheet_set_selection_(VALUE self, VALUE row_from, VALUE col_from,
+                               VALUE row_to, VALUE col_to);
+VALUE worksheet_set_landscape_(VALUE self);
+VALUE worksheet_set_portrait_(VALUE self);
+VALUE worksheet_set_page_view_(VALUE self);
+VALUE worksheet_set_paper_(VALUE self, VALUE paper_type);
+VALUE worksheet_set_margins_(VALUE self, VALUE left, VALUE right, VALUE top, VALUE bottom);
+VALUE worksheet_set_header_(VALUE self, VALUE val, VALUE opts);
+VALUE worksheet_set_footer_(VALUE self, VALUE val, VALUE opts);
+VALUE worksheet_set_h_pagebreaks_(VALUE self, VALUE val);
+VALUE worksheet_set_v_pagebreaks_(VALUE self, VALUE val);
+VALUE worksheet_print_across_(VALUE self);
+VALUE worksheet_set_zoom_(VALUE self, VALUE val);
 VALUE worksheet_gridlines_(VALUE self, VALUE value);
+VALUE worksheet_center_horizontally_(VALUE self);
+VALUE worksheet_center_vertically_(VALUE self);
+VALUE worksheet_print_row_col_headers_(VALUE self);
+
+VALUE worksheet_get_vertical_dpi_(VALUE self);
+VALUE worksheet_set_vertical_dpi_(VALUE self, VALUE val);
 
 
 lxw_col_t value_to_col(VALUE value);

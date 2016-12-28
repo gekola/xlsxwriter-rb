@@ -49,7 +49,6 @@ workbook_init(int argc, VALUE *argv, VALUE self) {
   } else {
     ptr->workbook = workbook_new(ptr->path);
   }
-
   rb_iv_set(self, "@font_sizes", rb_hash_new());
 
   return self;

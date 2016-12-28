@@ -27,6 +27,7 @@ void Init_xlsxwriter() {
   rb_define_method(cWorksheet, "write_url", worksheet_write_url_, 4);
   rb_define_method(cWorksheet, "write_boolean", worksheet_write_boolean_, 4);
   rb_define_method(cWorksheet, "write_blank", worksheet_write_blank_, 3);
+  rb_define_method(cWorksheet, "write_formula_num", worksheet_write_formula_num_, 5);
   rb_define_method(cWorksheet, "set_row", worksheet_set_row_, 2);
   rb_define_method(cWorksheet, "set_column", worksheet_set_column_, 3);
   rb_define_method(cWorksheet, "insert_image", worksheet_insert_image_, 4);
@@ -35,9 +36,29 @@ void Init_xlsxwriter() {
   rb_define_method(cWorksheet, "autofilter", worksheet_autofilter_, 4);
   rb_define_method(cWorksheet, "activate", worksheet_activate_, 0);
   rb_define_method(cWorksheet, "select", worksheet_select_, 0);
-
-
+  rb_define_method(cWorksheet, "hide", worksheet_hide_, 0);
+  rb_define_method(cWorksheet, "set_first_sheet", worksheet_set_first_sheet_, 0);
+  rb_define_method(cWorksheet, "freeze_panes", worksheet_freeze_panes_, 2);
+  rb_define_method(cWorksheet, "split_panes", worksheet_split_panes_, 2);
+  rb_define_method(cWorksheet, "set_selection", worksheet_set_selection_, 4);
+  rb_define_method(cWorksheet, "set_landscape", worksheet_set_landscape_, 0);
+  rb_define_method(cWorksheet, "set_portrait", worksheet_set_portrait_, 0);
+  rb_define_method(cWorksheet, "set_page_view", worksheet_set_page_view_, 0);
+  rb_define_method(cWorksheet, "paper=", worksheet_set_paper_, 1);
+  rb_define_method(cWorksheet, "set_margins", worksheet_set_margins_, 4);
+  rb_define_method(cWorksheet, "set_header", worksheet_set_header_, 1);
+  rb_define_method(cWorksheet, "set_footer", worksheet_set_footer_, 1);
+  rb_define_method(cWorksheet, "set_h_pagebreaks", worksheet_set_h_pagebreaks_, 1);
+  rb_define_method(cWorksheet, "set_v_pagebreaks", worksheet_set_v_pagebreaks_, 1);
+  rb_define_method(cWorksheet, "print_across", worksheet_print_across_, 0);
+  rb_define_method(cWorksheet, "zoom=", worksheet_set_zoom_, 1);
   rb_define_method(cWorksheet, "gridlines=", worksheet_gridlines_, 1);
+  rb_define_method(cWorksheet, "center_horizontally", worksheet_center_horizontally_, 0);
+  rb_define_method(cWorksheet, "center_vertically", worksheet_center_vertically_, 0);
+  rb_define_method(cWorksheet, "print_row_col_headers", worksheet_print_row_col_headers_, 0);
+
+  rb_define_method(cWorksheet, "vertical_dpi", worksheet_get_vertical_dpi_, 0);
+  rb_define_method(cWorksheet, "vertical_dpi=", worksheet_set_vertical_dpi_, 1);
 
 #define MAP_LXW_FMT_CONST(name) rb_define_const(mXlsxFormat, #name, INT2NUM(LXW_##name))
   MAP_LXW_FMT_CONST(COLOR_BLACK);
@@ -111,6 +132,10 @@ void Init_xlsxwriter() {
   MAP_LXW_FMT_CONST(BORDER_DASH_DOT_DOT);
   MAP_LXW_FMT_CONST(BORDER_MEDIUM_DASH_DOT_DOT);
   MAP_LXW_FMT_CONST(BORDER_SLANT_DASH_DOT);
+
+  MAP_LXW_FMT_CONST(DIAGONAL_BORDER_UP);
+  MAP_LXW_FMT_CONST(DIAGONAL_BORDER_DOWN);
+  MAP_LXW_FMT_CONST(DIAGONAL_BORDER_UP_DOWN);
 #undef MAP_LXW_FMT_CONST
 
 #define MAP_LXW_WH_CONST(name, val_name) rb_define_const(cWorksheet, #name, INT2NUM(LXW_##val_name))

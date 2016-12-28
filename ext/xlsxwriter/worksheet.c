@@ -329,15 +329,181 @@ worksheet_autofilter_(VALUE self, VALUE row_from, VALUE col_from, VALUE row_to, 
 VALUE worksheet_activate_(VALUE self) {
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
-
   worksheet_activate(ptr->worksheet);
   return self;
 }
 VALUE worksheet_select_(VALUE self) {
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
-
   worksheet_select(ptr->worksheet);
+  return self;
+}
+
+VALUE
+worksheet_hide_(VALUE self) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_hide(ptr->worksheet);
+  return self;
+}
+
+VALUE
+worksheet_set_first_sheet_(VALUE self) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_set_first_sheet(ptr->worksheet);
+  return self;
+}
+VALUE
+worksheet_freeze_panes_(VALUE self, VALUE row, VALUE col) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_freeze_panes(ptr->worksheet, NUM2INT(row), value_to_col(col));
+  return self;
+}
+
+VALUE
+worksheet_split_panes_(VALUE self, VALUE vertical, VALUE horizontal) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_split_panes(ptr->worksheet, NUM2DBL(vertical), NUM2DBL(horizontal));
+  return self;
+}
+
+VALUE
+worksheet_set_selection_(VALUE self, VALUE row_from, VALUE col_from, VALUE row_to, VALUE col_to) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_set_selection(ptr->worksheet, NUM2INT(row_from), value_to_col(col_from),
+                          NUM2INT(row_to), value_to_col(col_to));
+  return self;
+}
+
+VALUE
+worksheet_set_landscape_(VALUE self) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_set_landscape(ptr->worksheet);
+  return self;
+}
+
+VALUE
+worksheet_set_portrait_(VALUE self) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_set_portrait(ptr->worksheet);
+  return self;
+}
+
+VALUE
+worksheet_set_page_view_(VALUE self) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_set_page_view(ptr->worksheet);
+  return self;
+}
+
+VALUE
+worksheet_set_paper_(VALUE self, VALUE paper_type) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_set_paper(ptr->worksheet, NUM2INT(paper_type));
+  return self;
+}
+
+VALUE
+worksheet_set_margins_(VALUE self, VALUE left, VALUE right, VALUE top, VALUE bottom) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_set_margins(ptr->worksheet, NUM2DBL(left), NUM2DBL(right), NUM2DBL(top), NUM2DBL(bottom));
+  return self;
+}
+
+VALUE
+worksheet_set_header_(VALUE self, VALUE val, VALUE opts) {
+  const char *str = StringValueCStr(val);
+  lxw_header_footer_options options = { .margin = 0.0 };
+  char with_options = '\0';
+  if (!NIL_P(opts)) {
+    VALUE margin = rb_hash_aref(opts, ID2SYM(rb_intern("margin")));
+    if (!NIL_P(margin)) {
+      with_options = '\1';
+      options.margin = NUM2DBL(margin);
+    }
+  }
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  if (with_options) {
+    worksheet_set_header(ptr->worksheet, str);
+  } else {
+    worksheet_set_header_opt(ptr->worksheet, str, &options);
+  }
+  return self;
+}
+
+VALUE
+worksheet_set_footer_(VALUE self, VALUE val, VALUE opts) {
+  const char *str = StringValueCStr(val);
+  lxw_header_footer_options options = { .margin = 0.0 };
+  char with_options = '\0';
+  if (!NIL_P(opts)) {
+    VALUE margin = rb_hash_aref(opts, ID2SYM(rb_intern("margin")));
+    if (!NIL_P(margin)) {
+      with_options = '\1';
+      options.margin = NUM2DBL(margin);
+    }
+  }
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  if (with_options) {
+    worksheet_set_footer(ptr->worksheet, str);
+  } else {
+    worksheet_set_footer_opt(ptr->worksheet, str, &options);
+  }
+  return self;
+}
+
+VALUE
+worksheet_set_h_pagebreaks_(VALUE self, VALUE val) {
+  const size_t len = RARRAY_LEN(val);
+  lxw_row_t rows[len+1];
+  for (size_t i = 0; i<len; ++i) {
+    rows[i] = NUM2INT(rb_ary_entry(val, i));
+  }
+  rows[len] = 0;
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_set_h_pagebreaks(ptr->worksheet, rows);
+  return self;
+}
+
+VALUE
+worksheet_set_v_pagebreaks_(VALUE self, VALUE val) {
+  const size_t len = RARRAY_LEN(val);
+  lxw_col_t cols[len+1];
+  for (size_t i = 0; i<len; ++i) {
+    cols[i] = value_to_col(rb_ary_entry(val, i));
+  }
+  cols[len] = 0;
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_set_v_pagebreaks(ptr->worksheet, cols);
+  return self;
+}
+
+VALUE
+worksheet_print_across_(VALUE self) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_print_across(ptr->worksheet);
+  return self;
+}
+
+VALUE
+worksheet_set_zoom_(VALUE self, VALUE val) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_set_zoom(ptr->worksheet, NUM2INT(val));
   return self;
 }
 
@@ -349,6 +515,45 @@ worksheet_gridlines_(VALUE self, VALUE value) {
   worksheet_gridlines(ptr->worksheet, NUM2INT(value));
 
   return value;
+}
+
+VALUE
+worksheet_center_horizontally_(VALUE self){
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_center_horizontally(ptr->worksheet);
+  return self;
+}
+
+VALUE
+worksheet_center_vertically_(VALUE self) {
+    struct worksheet *ptr;
+    Data_Get_Struct(self, struct worksheet, ptr);
+    worksheet_center_vertically(ptr->worksheet);
+    return self;
+}
+
+VALUE
+worksheet_print_row_col_headers_(VALUE self) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_print_row_col_headers(ptr->worksheet);
+  return self;
+}
+
+VALUE
+worksheet_get_vertical_dpi_(VALUE self) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  return ptr->worksheet->vertical_dpi;
+}
+
+VALUE
+worksheet_set_vertical_dpi_(VALUE self, VALUE val) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  ptr->worksheet->vertical_dpi = NUM2INT(val);
+  return val;
 }
 
 

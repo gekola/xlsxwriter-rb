@@ -42,7 +42,7 @@ class TestSimple < XlsxWriterTestCase
 
     y = ws2.select
     y = ws3.select
-    y = ws1.activate
+    y = ws3.activate
   end
 
   test 'simple04' do |wb|

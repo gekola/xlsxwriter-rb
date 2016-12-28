@@ -1,14 +1,15 @@
 require_relative './xlsx-func-testcase'
 
 class TestGridlines < XlsxWriterTestCase
-  test 'gridlines01' do |wb|
+  test 'gridlines01' do |wb, t|
+    t.ignore_elements = { 'xl/worksheets/sheet1.xml' => [ '<pageMargins' ] }
     ws = wb.add_worksheet
 
-    ws.set_paper(9)
-    worksheet.vertical_dpi = 200
+    ws.paper = 9
+    ws.vertical_dpi = 200
 
-    worksheet_gridlines = XlsxWriter::Worksheet::LXW_HIDE_ALL_GRIDLINES
+    ws.gridlines = XlsxWriter::Worksheet::GRIDLINES_HIDE_ALL
 
-    worksheet_write_string(worksheet, 0, "A", "Foo" , nil)
+    ws.write_string(0, 'A', 'Foo' , nil)
   end
 end
