@@ -1,5 +1,7 @@
 require 'rake/extensiontask'
 
+task default: :test
+
 spec = Gem::Specification.load('xlsxwriter.gemspec')
 Rake::ExtensionTask.new('xlsxwriter', spec) do |ext|
   ext.lib_dir = 'lib/xlsxwriter'
@@ -29,4 +31,9 @@ task :fetch_dep do
   Dir['./dep_patches/*.patch'].each do |patch|
     `(cd #{DEP_DIR} && patch -p1) <#{patch}`
   end
+end
+
+desc 'Run specs'
+task test: :compile do
+  ruby('test/run-test.rb')
 end

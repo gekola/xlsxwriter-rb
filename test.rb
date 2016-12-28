@@ -37,3 +37,5 @@ end
               types: [:string, :number, :formula, :datetime, :url, :boolean, :blank],
               style: [nil, nil, nil, :date, nil, nil, nil, nil, :datetime])
 end
+
+ws2.insert_image(13, 'C', 'ext/xlsxwriter/libxlsxwriter/test/functional/src/images/red.png', {scale: 2.0, x_offset: 10, y_offset: 3})

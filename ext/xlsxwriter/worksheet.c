@@ -114,6 +114,16 @@ worksheet_write_formula_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE fo
   return self;
 }
 
+VALUE worksheet_write_array_formula_(VALUE self, VALUE row_from, VALUE col_from, VALUE row_to, VALUE col_to, VALUE value, VALUE format_key) {
+  const char *str = StringValueCStr(value);
+  struct worksheet *ptr;
+  VALUE workbook = rb_iv_get(self, "@workbook");
+  lxw_format *format = workbook_get_format(workbook, format_key);
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_write_array_formula(ptr->worksheet, NUM2INT(row_from), value_to_col(col_from), NUM2INT(row_to), value_to_col(col_to), str, format);
+  return self;
+}
+
 VALUE
 worksheet_write_datetime_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE format_key) {
   struct lxw_datetime datetime = {
@@ -162,6 +172,16 @@ worksheet_write_blank_(VALUE self, VALUE row, VALUE col, VALUE format_key) {
   lxw_format *format = workbook_get_format(workbook, format_key);
   Data_Get_Struct(self, struct worksheet, ptr);
   worksheet_write_blank(ptr->worksheet, NUM2INT(row), value_to_col(col), format);
+  return self;
+}
+
+VALUE worksheet_write_formula_num_(VALUE self, VALUE row, VALUE col, VALUE formula, VALUE format_key, VALUE value) {
+  const char *str = RSTRING_PTR(formula);
+  struct worksheet *ptr;
+  VALUE workbook = rb_iv_get(self, "@workbook");
+  lxw_format *format = workbook_get_format(workbook, format_key);
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_write_formula_num(ptr->worksheet, NUM2INT(row), value_to_col(col), str, format, NUM2DBL(value));
   return self;
 }
 
@@ -294,6 +314,30 @@ worksheet_merge_range_(VALUE self, VALUE row_from, VALUE col_from,
 
   worksheet_merge_range(ptr->worksheet, NUM2INT(row_from), col1,
                         NUM2INT(row_to), col2, StringValueCStr(value), format);
+  return self;
+}
+
+VALUE
+worksheet_autofilter_(VALUE self, VALUE row_from, VALUE col_from, VALUE row_to, VALUE col_to) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+
+  worksheet_autofilter(ptr->worksheet, NUM2INT(row_from), value_to_col(col_from),
+                                       NUM2INT(row_to),   value_to_col(col_to));
+  return self;
+}
+VALUE worksheet_activate_(VALUE self) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+
+  worksheet_activate(ptr->worksheet);
+  return self;
+}
+VALUE worksheet_select_(VALUE self) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+
+  worksheet_select(ptr->worksheet);
   return self;
 }
 

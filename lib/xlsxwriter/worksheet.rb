@@ -18,7 +18,7 @@ class XlsxWriter::Worksheet
         write_string(row_idx, idx, value.to_s, cell_style)
         update_col_auto_width(idx, value.to_s, cell_style)
       when :number
-        write_number(row_idx, idx, value, cell_style)
+        write_number(row_idx, idx, value.to_f, cell_style)
       when :formula
         write_formula(row_idx, idx, value, cell_style)
       when :datetime

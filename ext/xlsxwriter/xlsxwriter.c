@@ -22,6 +22,7 @@ void Init_xlsxwriter() {
   rb_define_method(cWorksheet, "write_string", worksheet_write_string_, 4);
   rb_define_method(cWorksheet, "write_number", worksheet_write_number_, 4);
   rb_define_method(cWorksheet, "write_formula", worksheet_write_formula_, 4);
+  rb_define_method(cWorksheet, "write_array_formula", worksheet_write_array_formula_, 6);
   rb_define_method(cWorksheet, "write_datetime", worksheet_write_datetime_, 4);
   rb_define_method(cWorksheet, "write_url", worksheet_write_url_, 4);
   rb_define_method(cWorksheet, "write_boolean", worksheet_write_boolean_, 4);
@@ -31,6 +32,10 @@ void Init_xlsxwriter() {
   rb_define_method(cWorksheet, "insert_image", worksheet_insert_image_, 4);
   rb_define_method(cWorksheet, "insert_chart", worksheet_insert_chart_, 4);
   rb_define_method(cWorksheet, "merge_range", worksheet_merge_range_, 6);
+  rb_define_method(cWorksheet, "autofilter", worksheet_autofilter_, 4);
+  rb_define_method(cWorksheet, "activate", worksheet_activate_, 0);
+  rb_define_method(cWorksheet, "select", worksheet_select_, 0);
+
 
   rb_define_method(cWorksheet, "gridlines=", worksheet_gridlines_, 1);
 

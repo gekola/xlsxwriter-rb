@@ -13,4 +13,6 @@ Gem::Specification.new do |s|
   s.extensions = Dir['ext/**/extconf.rb'].freeze
 
   s.add_development_dependency 'rake-compiler'
+  s.add_development_dependency 'test-unit'
+  s.add_development_dependency 'rubyzip'
 end
