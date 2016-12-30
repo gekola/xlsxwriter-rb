@@ -144,13 +144,60 @@ worksheet_write_datetime_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE f
 }
 
 VALUE
-worksheet_write_url_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE format_key) {
-  const char *str = RSTRING_PTR(value);
+worksheet_write_url_(int argc, VALUE *argv, VALUE self) {
+  rb_check_arity(argc, 3, 5);
+  VALUE row = argv[0];
+  VALUE col = argv[1];
+  VALUE url = argv[2];
+  VALUE format_key = Qnil; // argv[3];
+  VALUE opts = Qnil;
+  const char *url_str = RSTRING_PTR(url);
+  char *string = NULL;
+  char *tooltip = NULL;
+  if (argc > 3) {
+    switch(TYPE(argv[3])) {
+    case T_HASH:
+      opts = argv[3];
+      break;
+    case T_SYMBOL: case T_STRING: case T_NIL:
+      format_key = argv[3];
+      break;
+    default:
+      rb_raise(rb_eTypeError, "Expected Hash, symbol or string but got %"PRIsVALUE, rb_obj_class(argv[3]));
+    }
+  }
+  if (argc == 5) {
+    switch(TYPE(argv[4])) {
+    case T_HASH: case T_NIL:
+      opts = argv[4];
+      break;
+    default:
+      rb_raise(rb_eTypeError, "Expected Hash, got %"PRIsVALUE, rb_obj_class(argv[3]));
+    }
+  }
+  if (!NIL_P(opts)) {
+    VALUE val;
+    val = rb_hash_aref(opts, ID2SYM(rb_intern("string")));
+    if (!NIL_P(val)) {
+      string = StringValueCStr(val);
+    }
+    val = rb_hash_aref(opts, ID2SYM(rb_intern("tooltip")));
+    if (!NIL_P(val)) {
+      tooltip = StringValueCStr(val);
+    }
+    if (NIL_P(format_key)) {
+      format_key = rb_hash_aref(opts, ID2SYM(rb_intern("format")));
+    }
+  }
   struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
   Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_write_url(ptr->worksheet, NUM2INT(row), value_to_col(col), str, format);
+  if (string || tooltip) {
+    worksheet_write_url_opt(ptr->worksheet, NUM2INT(row), value_to_col(col), url_str, format, string, tooltip);
+  } else {
+    worksheet_write_url(ptr->worksheet, NUM2INT(row), value_to_col(col), url_str, format);
+  }
   return self;
 }
 
@@ -540,6 +587,134 @@ worksheet_print_row_col_headers_(VALUE self) {
   worksheet_print_row_col_headers(ptr->worksheet);
   return self;
 }
+
+VALUE
+worksheet_repeat_rows_(VALUE self, VALUE row_from, VALUE row_to) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_repeat_rows(ptr->worksheet, NUM2INT(row_from), NUM2INT(row_to));
+  return self;
+}
+
+VALUE
+worksheet_repeat_columns_(VALUE self, VALUE col_from, VALUE col_to) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_repeat_columns(ptr->worksheet, value_to_col(col_from), value_to_col(col_to));
+  return self;
+}
+
+VALUE
+worksheet_print_area_(VALUE self, VALUE row_from, VALUE col_from, VALUE row_to, VALUE col_to) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_print_area(ptr->worksheet, NUM2INT(row_from), value_to_col(col_from),
+                                       NUM2INT(row_to),   value_to_col(col_to));
+  return self;
+}
+
+VALUE
+worksheet_fit_to_pages_(VALUE self, VALUE width, VALUE height) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_fit_to_pages(ptr->worksheet, NUM2INT(width), NUM2INT(height));
+  return self;
+}
+
+VALUE
+worksheet_set_start_page_(VALUE self, VALUE start_page) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_set_start_page(ptr->worksheet, NUM2INT(start_page));
+  return start_page;
+}
+
+VALUE
+worksheet_set_print_scale_(VALUE self, VALUE scale) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_set_print_scale(ptr->worksheet, NUM2INT(scale));
+  return scale;
+}
+
+VALUE
+worksheet_right_to_left_(VALUE self) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_right_to_left(ptr->worksheet);
+  return self;
+}
+
+VALUE
+worksheet_hide_zero_(VALUE self) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_hide_zero(ptr->worksheet);
+  return self;
+}
+
+VALUE
+worksheet_set_tab_color_(VALUE self, VALUE color) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_set_tab_color(ptr->worksheet, NUM2INT(color));
+  return color;
+}
+
+VALUE
+worksheet_protect_(int argc, VALUE *argv, VALUE self) {
+  rb_check_arity(argc, 1, 2);
+  uint8_t with_options = '\0';
+  VALUE val;
+  lxw_protection options;
+  const char *password = StringValueCStr(argv[0]);
+  // All options are off by default
+  memset(&options, 0, sizeof options);
+
+  if (argc > 1) {
+#define PR_OPT(field) {                                       \
+      val = rb_hash_aref(argv[1], ID2SYM(rb_intern(#field))); \
+      if (!NIL_P(val) && val) {                               \
+        options.field = 1;                                    \
+        with_options = 1;                                     \
+      }                                                       \
+    }
+    PR_OPT(no_select_locked_cells);
+    PR_OPT(no_select_unlocked_cells);
+    PR_OPT(format_cells);
+    PR_OPT(format_columns);
+    PR_OPT(format_rows);
+    PR_OPT(insert_columns);
+    PR_OPT(insert_rows);
+    PR_OPT(insert_hyperlinks);
+    PR_OPT(delete_columns);
+    PR_OPT(delete_rows);
+    PR_OPT(sort);
+    PR_OPT(autofilter);
+    PR_OPT(pivot_tables);
+    PR_OPT(scenarios);
+    PR_OPT(objects);
+#undef PR_OPT
+  }
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  if (with_options) {
+    worksheet_protect(ptr->worksheet, password, &options);
+  } else {
+    worksheet_protect(ptr->worksheet, password, NULL);
+  }
+  return self;
+}
+
+VALUE
+worksheet_set_default_row_(VALUE self, VALUE height, VALUE hide_unused_rows) {
+  struct worksheet *ptr;
+  uint8_t hide_ur = !NIL_P(hide_unused_rows) && hide_unused_rows != Qfalse ? 1 : 0;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  worksheet_set_default_row(ptr->worksheet, NUM2DBL(height), hide_ur);
+  return self;
+}
+
 
 VALUE
 worksheet_get_vertical_dpi_(VALUE self) {

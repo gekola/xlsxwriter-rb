@@ -17,7 +17,7 @@ VALUE worksheet_write_number_(VALUE self, VALUE row, VALUE col, VALUE value, VAL
 VALUE worksheet_write_formula_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE format);
 VALUE worksheet_write_array_formula_(VALUE self, VALUE row_from, VALUE col_from, VALUE row_to, VALUE col_to, VALUE value, VALUE format);
 VALUE worksheet_write_datetime_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE format);
-VALUE worksheet_write_url_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE format);
+VALUE worksheet_write_url_(int argc, VALUE *argv, VALUE self);
 VALUE worksheet_write_boolean_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE format);
 VALUE worksheet_write_blank_(VALUE self, VALUE row, VALUE col, VALUE format);
 VALUE worksheet_write_formula_num_(VALUE self, VALUE row, VALUE col, VALUE formula, VALUE format, VALUE value);
@@ -52,6 +52,17 @@ VALUE worksheet_gridlines_(VALUE self, VALUE value);
 VALUE worksheet_center_horizontally_(VALUE self);
 VALUE worksheet_center_vertically_(VALUE self);
 VALUE worksheet_print_row_col_headers_(VALUE self);
+VALUE worksheet_repeat_rows_(VALUE self, VALUE row_from, VALUE row_to);
+VALUE worksheet_repeat_columns_(VALUE self, VALUE col_from, VALUE col_to);
+VALUE worksheet_print_area_(VALUE self, VALUE row_from, VALUE col_FROM, VALUE row_to, VALUE col_to);
+VALUE worksheet_fit_to_pages_(VALUE self, VALUE width, VALUE height);
+VALUE worksheet_set_start_page_(VALUE self, VALUE start_page);
+VALUE worksheet_set_print_scale_(VALUE self, VALUE scale);
+VALUE worksheet_right_to_left_(VALUE self);
+VALUE worksheet_hide_zero_(VALUE self);
+VALUE worksheet_set_tab_color_(VALUE self, VALUE color);
+VALUE worksheet_protect_(int argc, VALUE *argv, VALUE self);
+VALUE worksheet_set_default_row_(VALUE self, VALUE height, VALUE hide_unused_rows);
 
 VALUE worksheet_get_vertical_dpi_(VALUE self);
 VALUE worksheet_set_vertical_dpi_(VALUE self, VALUE val);

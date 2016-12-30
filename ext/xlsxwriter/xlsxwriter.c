@@ -14,7 +14,9 @@ void Init_xlsxwriter() {
   rb_define_method(cWorkbook, "free", workbook_release, 0);
   rb_define_method(cWorkbook, "add_worksheet", workbook_add_worksheet_, -1);
   rb_define_method(cWorkbook, "add_format", workbook_add_format_, 2);
+  rb_define_method(cWorkbook, "set_default_xf_indices", workbook_set_default_xf_indices_, 0);
   rb_define_attr(cWorkbook, "font_sizes", 1, 0);
+
 
   rb_define_alloc_func(cWorksheet, worksheet_alloc);
   rb_define_method(cWorksheet, "initialize", worksheet_init, -1);
@@ -24,7 +26,7 @@ void Init_xlsxwriter() {
   rb_define_method(cWorksheet, "write_formula", worksheet_write_formula_, 4);
   rb_define_method(cWorksheet, "write_array_formula", worksheet_write_array_formula_, 6);
   rb_define_method(cWorksheet, "write_datetime", worksheet_write_datetime_, 4);
-  rb_define_method(cWorksheet, "write_url", worksheet_write_url_, 4);
+  rb_define_method(cWorksheet, "write_url", worksheet_write_url_, -1);
   rb_define_method(cWorksheet, "write_boolean", worksheet_write_boolean_, 4);
   rb_define_method(cWorksheet, "write_blank", worksheet_write_blank_, 3);
   rb_define_method(cWorksheet, "write_formula_num", worksheet_write_formula_num_, 5);
@@ -56,9 +58,21 @@ void Init_xlsxwriter() {
   rb_define_method(cWorksheet, "center_horizontally", worksheet_center_horizontally_, 0);
   rb_define_method(cWorksheet, "center_vertically", worksheet_center_vertically_, 0);
   rb_define_method(cWorksheet, "print_row_col_headers", worksheet_print_row_col_headers_, 0);
+  rb_define_method(cWorksheet, "repeat_rows", worksheet_repeat_rows_, 2);
+  rb_define_method(cWorksheet, "repeat_columns", worksheet_repeat_columns_, 2);
+  rb_define_method(cWorksheet, "print_area", worksheet_print_area_, 4);
+  rb_define_method(cWorksheet, "fit_to_pages", worksheet_fit_to_pages_, 2);
+  rb_define_method(cWorksheet, "start_page=", worksheet_set_start_page_, 1);
+  rb_define_method(cWorksheet, "print_scale=", worksheet_set_print_scale_, 1);
+  rb_define_method(cWorksheet, "right_to_left", worksheet_right_to_left_, 0);
+  rb_define_method(cWorksheet, "hide_zero", worksheet_hide_zero_, 0);
+  rb_define_method(cWorksheet, "tab_color=", worksheet_set_tab_color_, 1);
+  rb_define_method(cWorksheet, "protect", worksheet_protect_, -1);
+  rb_define_method(cWorksheet, "set_default_row", worksheet_set_default_row_, 2);
 
   rb_define_method(cWorksheet, "vertical_dpi", worksheet_get_vertical_dpi_, 0);
   rb_define_method(cWorksheet, "vertical_dpi=", worksheet_set_vertical_dpi_, 1);
+
 
 #define MAP_LXW_FMT_CONST(name) rb_define_const(mXlsxFormat, #name, INT2NUM(LXW_##name))
   MAP_LXW_FMT_CONST(COLOR_BLACK);

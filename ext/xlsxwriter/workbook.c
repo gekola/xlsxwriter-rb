@@ -117,11 +117,25 @@ workbook_add_format_(VALUE self, VALUE key, VALUE opts) {
 
   VALUE font_size = rb_hash_aref(opts, ID2SYM(rb_intern("font_size")));
   if (!NIL_P(font_size)) {
-    rb_hash_aset(rb_iv_get(self, "@font_sizes"), key, font_size);
+    VALUE bold = rb_hash_aref(opts, ID2SYM(rb_intern("bold")));
+    if (!NIL_P(bold) && bold) {
+      rb_hash_aset(rb_iv_get(self, "@font_sizes"), key, rb_float_new(NUM2DBL(font_size) * 1.5));
+    } else {
+      rb_hash_aset(rb_iv_get(self, "@font_sizes"), key, font_size);
+    }
   }
 
   return self;
 }
+
+
+VALUE workbook_set_default_xf_indices_(VALUE self) {
+  struct workbook *ptr;
+  Data_Get_Struct(self, struct workbook, ptr);
+  lxw_workbook_set_default_xf_indices(ptr->workbook);
+  return self;
+}
+
 
 lxw_format *
 workbook_get_format(VALUE self, VALUE key) {
