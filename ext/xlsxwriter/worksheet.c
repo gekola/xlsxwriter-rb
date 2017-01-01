@@ -168,13 +168,30 @@ worksheet_write_formula_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
-VALUE worksheet_write_array_formula_(VALUE self, VALUE row_from, VALUE col_from, VALUE row_to, VALUE col_to, VALUE value, VALUE format_key) {
-  const char *str = StringValueCStr(value);
+VALUE worksheet_write_array_formula_(int argc, VALUE *argv, VALUE self) {
+  lxw_row_t row_from, row_to;
+  lxw_col_t col_from, col_to;
+  const char *str;
+  VALUE format_key = Qnil;
+
+  rb_check_arity(argc, 2, 6);
+  int larg = extract_range(argc, argv, &row_from, &col_from, &row_to, &col_to);
+
+  if (larg < argc) {
+    str = StringValueCStr(argv[larg]);
+    ++larg;
+  }
+
+  if (larg < argc) {
+    format_key = argv[larg];
+    ++larg;
+  }
+
   struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
   Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_write_array_formula(ptr->worksheet, NUM2INT(row_from), value_to_col(col_from), NUM2INT(row_to), value_to_col(col_to), str, format);
+  worksheet_write_array_formula(ptr->worksheet, row_from, col_from, row_to, col_to, str, format);
   return self;
 }
 
@@ -427,8 +444,12 @@ worksheet_set_column_(VALUE self, VALUE col_from, VALUE col_to, VALUE opts) {
   }
 
 VALUE
-worksheet_insert_image_(VALUE self, VALUE row, VALUE col, VALUE fname, VALUE opts) {
-  VALUE val;
+worksheet_insert_image_(int argc, VALUE *argv, VALUE self) {
+  lxw_row_t row;
+  lxw_col_t col;
+  VALUE fname = Qnil;
+  VALUE opts = Qnil;
+  VALUE val = Qnil;
   lxw_image_options options = {
     .x_offset = 0,
     .y_offset = 0,
@@ -436,28 +457,44 @@ worksheet_insert_image_(VALUE self, VALUE row, VALUE col, VALUE fname, VALUE opt
     .y_scale = 1.0
   };
   char with_options = '\0';
+  rb_check_arity(argc, 2, 4);
+  int larg = extract_cell(argc, argv, &row, &col);
+
+  if (larg < argc) {
+    fname = argv[larg];
+    ++larg;
+  }
+
+  if (larg < argc) {
+    opts = argv[larg];
+    ++larg;
+  }
 
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
 
-  SET_IMG_OPT("offset",   options.x_offset = options.y_offset = NUM2INT(val));
-  SET_IMG_OPT("x_offset", options.x_offset =                    NUM2INT(val));
-  SET_IMG_OPT("y_offset",                    options.y_offset = NUM2INT(val));
-  SET_IMG_OPT("scale",    options.x_scale  = options.y_scale  = NUM2DBL(val));
-  SET_IMG_OPT("x_scale",  options.x_scale  =                    NUM2DBL(val));
-  SET_IMG_OPT("y_scale",                     options.y_scale  = NUM2DBL(val));
+  if (!NIL_P(opts)) {
+    SET_IMG_OPT("offset",   options.x_offset = options.y_offset = NUM2INT(val));
+    SET_IMG_OPT("x_offset", options.x_offset =                    NUM2INT(val));
+    SET_IMG_OPT("y_offset",                    options.y_offset = NUM2INT(val));
+    SET_IMG_OPT("scale",    options.x_scale  = options.y_scale  = NUM2DBL(val));
+    SET_IMG_OPT("x_scale",  options.x_scale  =                    NUM2DBL(val));
+    SET_IMG_OPT("y_scale",                     options.y_scale  = NUM2DBL(val));
+  }
 
   if (with_options) {
-    worksheet_insert_image_opt(ptr->worksheet, NUM2INT(row), value_to_col(col), StringValueCStr(fname), &options);
+    worksheet_insert_image_opt(ptr->worksheet, row, col, StringValueCStr(fname), &options);
   } else {
-    worksheet_insert_image(ptr->worksheet, NUM2INT(row), value_to_col(col), StringValueCStr(fname));
+    worksheet_insert_image(ptr->worksheet, row, col, StringValueCStr(fname));
   }
 
   return self;
 }
 
+#undef SET_IMG_OPT
+
 VALUE
-worksheet_insert_chart_(VALUE self, VALUE row, VALUE col, VALUE chart, VALUE opts) {
+worksheet_insert_chart_(int argc, VALUE *argv, VALUE self) {
   rb_raise(rb_eRuntimeError, "worksheet_insert_chart is not ported yet");
   return self;
 }
@@ -465,30 +502,45 @@ worksheet_insert_chart_(VALUE self, VALUE row, VALUE col, VALUE chart, VALUE opt
 #undef SET_IMG_OPT
 
 VALUE
-worksheet_merge_range_(VALUE self, VALUE row_from, VALUE col_from,
-                       VALUE row_to, VALUE col_to, VALUE value, VALUE format_key) {
+worksheet_merge_range_(int argc, VALUE *argv, VALUE self) {
+  char *str;
   lxw_format *format = NULL;
-  lxw_col_t col1 = value_to_col(col_from);
-  lxw_col_t col2 = value_to_col(col_to);
+  lxw_col_t col1, col2;
+  lxw_row_t row1, row2;
   VALUE workbook = rb_iv_get(self, "@workbook");
 
-  format = workbook_get_format(workbook, format_key);
+  rb_check_arity(argc, 2, 6);
+  int larg = extract_range(argc, argv, &row1, &col1, &row2, &col2);
+
+  if (larg < argc) {
+    str = StringValueCStr(argv[larg]);
+    ++larg;
+  }
+
+  if (larg < argc) {
+    format = workbook_get_format(workbook, argv[larg]);
+    ++larg;
+  }
 
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
 
-  worksheet_merge_range(ptr->worksheet, NUM2INT(row_from), col1,
-                        NUM2INT(row_to), col2, StringValueCStr(value), format);
+  worksheet_merge_range(ptr->worksheet, row1, col1, row2, col2, str, format);
   return self;
 }
 
 VALUE
-worksheet_autofilter_(VALUE self, VALUE row_from, VALUE col_from, VALUE row_to, VALUE col_to) {
+worksheet_autofilter_(int argc, VALUE *argv, VALUE self) {
+  lxw_row_t row_from, row_to;
+  lxw_col_t col_from, col_to;
+
+  rb_check_arity(argc, 1, 4);
+  extract_range(argc, argv, &row_from, &col_from, &row_to, &col_to);
+
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
 
-  worksheet_autofilter(ptr->worksheet, NUM2INT(row_from), value_to_col(col_from),
-                                       NUM2INT(row_to),   value_to_col(col_to));
+  worksheet_autofilter(ptr->worksheet, row_from, col_from, row_to, col_to);
   return self;
 }
 VALUE worksheet_activate_(VALUE self) {
@@ -553,11 +605,17 @@ worksheet_split_panes_(VALUE self, VALUE vertical, VALUE horizontal) {
 }
 
 VALUE
-worksheet_set_selection_(VALUE self, VALUE row_from, VALUE col_from, VALUE row_to, VALUE col_to) {
+worksheet_set_selection_(int argc, VALUE *argv, VALUE self) {
+  lxw_row_t row_from, row_to;
+  lxw_col_t col_from, col_to;
+
+  rb_check_arity(argc, 1, 4);
+  extract_range(argc, argv, &row_from, &col_from, &row_to, &col_to);
+
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_set_selection(ptr->worksheet, NUM2INT(row_from), value_to_col(col_from),
-                          NUM2INT(row_to), value_to_col(col_to));
+
+  worksheet_set_selection(ptr->worksheet, row_from, col_from, row_to, col_to);
   return self;
 }
 
@@ -740,11 +798,17 @@ worksheet_repeat_columns_(VALUE self, VALUE col_from, VALUE col_to) {
 }
 
 VALUE
-worksheet_print_area_(VALUE self, VALUE row_from, VALUE col_from, VALUE row_to, VALUE col_to) {
+worksheet_print_area_(int argc, VALUE *argv, VALUE self) {
+  lxw_row_t row_from, row_to;
+  lxw_col_t col_from, col_to;
+
+  rb_check_arity(argc, 1, 4);
+  extract_range(argc, argv, &row_from, &col_from, &row_to, &col_to);
+
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_print_area(ptr->worksheet, NUM2INT(row_from), value_to_col(col_from),
-                                       NUM2INT(row_to),   value_to_col(col_to));
+
+  worksheet_print_area(ptr->worksheet, row_from, col_from, row_to, col_to);
   return self;
 }
 
@@ -956,4 +1020,23 @@ extract_cell(int argc, VALUE *argv, lxw_row_t *row, lxw_col_t *col) {
     rb_raise(rb_eTypeError, "Expected string or number, got %"PRIsVALUE, rb_obj_class(argv[0]));
     return 0;
   }
+}
+
+int extract_range(int argc, VALUE *argv, lxw_row_t *row_from, lxw_col_t *col_from,
+                                         lxw_row_t *row_to,   lxw_col_t *col_to) {
+  char *str;
+  if (TYPE(argv[0]) == T_STRING) {
+    str = RSTRING_PTR(argv[0]);
+    if (strstr(str, ":")) {
+      (*row_from) = lxw_name_to_row(str);
+      (*col_from) = lxw_name_to_col(str);
+      (*row_to) = lxw_name_to_row_2(str);
+      (*col_to) = lxw_name_to_col_2(str);
+      return 1;
+    }
+  }
+
+  int larg = extract_cell(argc, argv, row_from, col_from);
+  larg += extract_cell(argc - larg, argv + larg, row_to, col_to);
+  return larg;
 }

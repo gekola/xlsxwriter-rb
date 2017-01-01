@@ -65,6 +65,6 @@ class TestAutofilter < XlsxWriterTestCase
     ws = wb.add_worksheet
 
     ROWS.each { |row| ws.add_row row }
-    ws.autofilter(0, 0, 50, 3);
+    ws.autofilter('A1', 50, 3);
   end
 end

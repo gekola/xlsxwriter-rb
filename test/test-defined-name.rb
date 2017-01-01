@@ -26,4 +26,21 @@ class TestDefinedName < XlsxWriterTestCase
     wb.define_name "_Egg",          "=Sheet1!$A$1"
     wb.define_name "_Fog",          "=Sheet1!$A$1"
   end
+
+  test 'defined_name03' do |wb, t|
+    t.ignore_elements = { 'xl/worksheets/sheet1.xml' => [ '<pageMargins' ] }
+    wb.add_worksheet('sheet One')
+    wb.define_name 'Sales', '=\'sheet One\'!G1:H10'
+  end
+
+  test 'defined_name04' do |wb, t|
+    t.ignore_elements = { 'xl/worksheets/sheet1.xml' => [ '<pageMargins' ] }
+    wb.add_worksheet
+    wb.define_name '\\__',                 '=Sheet1!$A$1'
+    wb.define_name 'a3f6',                 '=Sheet1!$A$2'
+    wb.define_name 'afoo.bar',             '=Sheet1!$A$3'
+    wb.define_name "\xc3\xa9tude",         '=Sheet1!$A$4'
+    wb.define_name "e\xc3\xa9sum\xc3\xa9", '=Sheet1!$A$5'
+    wb.define_name 'a',                    '=Sheet1!$A$6'
+  end
 end
