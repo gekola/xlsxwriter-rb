@@ -1,6 +1,6 @@
 module XlsxWriter
-  VERSION='0.0.2'.freeze
 end
 
+require 'xlsxwriter/version'
 require 'xlsxwriter/xlsxwriter'
 require 'xlsxwriter/worksheet'

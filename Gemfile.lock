@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    xlsxwriter (0.0.1)
+    xlsxwriter (0.0.2)
 
 GEM
   remote: https://rubygems.org/
@@ -18,9 +18,9 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  rake-compiler
-  rubyzip
-  test-unit
+  rake-compiler (~> 1.0)
+  rubyzip (~> 1.2)
+  test-unit (~> 3.2)
   xlsxwriter!
 
 BUNDLED WITH
