@@ -20,11 +20,13 @@ VALUE workbook_add_worksheet_(int argc, VALUE *argv, VALUE self);
 VALUE workbook_add_format_(VALUE self, VALUE key, VALUE opts);
 VALUE workbook_set_default_xf_indices_(VALUE self);
 VALUE workbook_properties_(VALUE self);
+VALUE workbook_define_name_(VALUE self, VALUE name, VALUE formula);
+VALUE workbook_validate_worksheet_name_(VALUE self, VALUE name);
 
 
 lxw_format *workbook_get_format(VALUE self, VALUE key);
 lxw_datetime value_to_lxw_datetime(VALUE val);
-
+void handle_lxw_error(lxw_error err);
 
 extern VALUE mXlsxWriter;
 extern VALUE cWorkbook;

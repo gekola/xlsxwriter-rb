@@ -186,6 +186,24 @@ workbook_properties_(VALUE self) {
   return props;
 }
 
+VALUE
+workbook_define_name_(VALUE self, VALUE name, VALUE formula) {
+  struct workbook *ptr;
+  Data_Get_Struct(self, struct workbook, ptr);
+  workbook_define_name(ptr->workbook, StringValueCStr(name), StringValueCStr(formula));
+  return self;
+}
+
+VALUE
+workbook_validate_worksheet_name_(VALUE self, VALUE name) {
+  struct workbook *ptr;
+  lxw_error err;
+  Data_Get_Struct(self, struct workbook, ptr);
+  err = workbook_validate_worksheet_name(ptr->workbook, StringValueCStr(name));
+  handle_lxw_error(err);
+  return Qtrue;
+}
+
 
 lxw_format *
 workbook_get_format(VALUE self, VALUE key) {
@@ -221,4 +239,9 @@ value_to_lxw_datetime(VALUE val) {
     NUM2DBL(rb_funcall(val, rb_intern("subsec"), 0))
   };
   return res;
+}
+
+void
+handle_lxw_error(lxw_error err) {
+  
 }

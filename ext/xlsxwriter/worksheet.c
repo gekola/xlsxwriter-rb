@@ -82,35 +82,89 @@ worksheet_free(void *p) {
 }
 
 VALUE
-worksheet_write_string_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE format_key) {
+worksheet_write_string_(int argc, VALUE *argv, VALUE self) {
+  lxw_row_t row;
+  lxw_col_t col;
+  VALUE value = Qnil;
+  VALUE format_key = Qnil;
+
+  rb_check_arity(argc, 2, 4);
+  int larg = extract_cell(argc, argv, &row, &col);
+
+  if (larg < argc) {
+    value = argv[larg];
+    ++larg;
+  }
+
+  if (larg < argc) {
+    format_key = argv[larg];
+    ++larg;
+  }
+
   const char *str = StringValueCStr(value);
   struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
   Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_write_string(ptr->worksheet, NUM2INT(row), value_to_col(col), str, format);
+  worksheet_write_string(ptr->worksheet, row, col, str, format);
   return self;
 }
 
 VALUE
-worksheet_write_number_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE format_key) {
+worksheet_write_number_(int argc, VALUE *argv, VALUE self) {
+  lxw_row_t row;
+  lxw_col_t col;
+  VALUE value = Qnil;
+  VALUE format_key = Qnil;
+
+  rb_check_arity(argc, 2, 4);
+  int larg = extract_cell(argc, argv, &row, &col);
+
+  if (larg < argc) {
+    value = argv[larg];
+    ++larg;
+  }
+
+  if (larg < argc) {
+    format_key = argv[larg];
+    ++larg;
+  }
+
   const double num = NUM2DBL(value);
   struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
   Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_write_number(ptr->worksheet, NUM2INT(row), value_to_col(col), num, format);
+  worksheet_write_number(ptr->worksheet, row, col, num, format);
   return self;
 }
 
 VALUE
-worksheet_write_formula_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE format_key) {
+worksheet_write_formula_(int argc, VALUE *argv, VALUE self) {
+  lxw_row_t row;
+  lxw_col_t col;
+  VALUE value = Qnil;
+  VALUE format_key = Qnil;
+
+  rb_check_arity(argc, 2, 4);
+  int larg = extract_cell(argc, argv, &row, &col);
+
+  if (larg < argc) {
+    value = argv[larg];
+    ++larg;
+  }
+
+  if (larg < argc) {
+    format_key = argv[larg];
+    ++larg;
+  }
+
   const char *str = RSTRING_PTR(value);
   struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
   Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_write_formula(ptr->worksheet, NUM2INT(row), value_to_col(col), str, format);
+  worksheet_write_formula(ptr->worksheet, row, col, str, format);
   return self;
 }
 
@@ -125,48 +179,67 @@ VALUE worksheet_write_array_formula_(VALUE self, VALUE row_from, VALUE col_from,
 }
 
 VALUE
-worksheet_write_datetime_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE format_key) {
+worksheet_write_datetime_(int argc, VALUE *argv, VALUE self) {
+  lxw_row_t row;
+  lxw_col_t col;
+  VALUE value = Qnil;
+  VALUE format_key = Qnil;
+
+  rb_check_arity(argc, 2, 4);
+  int larg = extract_cell(argc, argv, &row, &col);
+
+  if (larg < argc) {
+    value = argv[larg];
+    ++larg;
+  }
+
+  if (larg < argc) {
+    format_key = argv[larg];
+    ++larg;
+  }
+
   struct lxw_datetime datetime = value_to_lxw_datetime(value);
   struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
   Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_write_datetime(ptr->worksheet, NUM2INT(row), value_to_col(col), &datetime, format);
+  worksheet_write_datetime(ptr->worksheet, row, col, &datetime, format);
   return self;
 }
 
 VALUE
 worksheet_write_url_(int argc, VALUE *argv, VALUE self) {
-  rb_check_arity(argc, 3, 5);
-  VALUE row = argv[0];
-  VALUE col = argv[1];
-  VALUE url = argv[2];
+  lxw_row_t row;
+  lxw_col_t col;
+  VALUE url = Qnil; //argv[2];
   VALUE format_key = Qnil; // argv[3];
   VALUE opts = Qnil;
+
+  rb_check_arity(argc, 2, 5);
+  int larg = extract_cell(argc, argv, &row, &col);
+
+  if (larg < argc) {
+    url = argv[larg];
+    ++larg;
+  }
+
   const char *url_str = RSTRING_PTR(url);
   char *string = NULL;
   char *tooltip = NULL;
-  if (argc > 3) {
-    switch(TYPE(argv[3])) {
+  while (larg < argc) {
+    switch(TYPE(argv[larg])) {
     case T_HASH:
-      opts = argv[3];
+      opts = argv[larg];
       break;
     case T_SYMBOL: case T_STRING: case T_NIL:
-      format_key = argv[3];
+      format_key = argv[larg];
       break;
     default:
-      rb_raise(rb_eTypeError, "Expected Hash, symbol or string but got %"PRIsVALUE, rb_obj_class(argv[3]));
+      rb_raise(rb_eTypeError, "Expected Hash, symbol or string but got %"PRIsVALUE, rb_obj_class(argv[larg]));
     }
+    ++larg;
   }
-  if (argc == 5) {
-    switch(TYPE(argv[4])) {
-    case T_HASH: case T_NIL:
-      opts = argv[4];
-      break;
-    default:
-      rb_raise(rb_eTypeError, "Expected Hash, got %"PRIsVALUE, rb_obj_class(argv[3]));
-    }
-  }
+
   if (!NIL_P(opts)) {
     VALUE val;
     val = rb_hash_aref(opts, ID2SYM(rb_intern("string")));
@@ -186,41 +259,94 @@ worksheet_write_url_(int argc, VALUE *argv, VALUE self) {
   lxw_format *format = workbook_get_format(workbook, format_key);
   Data_Get_Struct(self, struct worksheet, ptr);
   if (string || tooltip) {
-    worksheet_write_url_opt(ptr->worksheet, NUM2INT(row), value_to_col(col), url_str, format, string, tooltip);
+    worksheet_write_url_opt(ptr->worksheet, row, col, url_str, format, string, tooltip);
   } else {
-    worksheet_write_url(ptr->worksheet, NUM2INT(row), value_to_col(col), url_str, format);
+    worksheet_write_url(ptr->worksheet, row, col, url_str, format);
   }
   return self;
 }
 
 VALUE
-worksheet_write_boolean_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE format_key) {
-  int bool_value = value && (value != Qnil);
+worksheet_write_boolean_(int argc, VALUE *argv, VALUE self) {
+  lxw_row_t row;
+  lxw_col_t col;
+  int bool_value = 0;
+  VALUE format_key = Qnil;
+
+  rb_check_arity(argc, 2, 4);
+  int larg = extract_cell(argc, argv, &row, &col);
+
+  if (larg < argc) {
+    bool_value = argv[larg] && !NIL_P(argv[larg]);
+    ++larg;
+  }
+
+  if (larg < argc) {
+    format_key = argv[larg];
+    ++larg;
+  }
+
   struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
   Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_write_boolean(ptr->worksheet, NUM2INT(row), value_to_col(col), bool_value, format);
+  worksheet_write_boolean(ptr->worksheet, row, col, bool_value, format);
   return self;
 }
 
 VALUE
-worksheet_write_blank_(VALUE self, VALUE row, VALUE col, VALUE format_key) {
+worksheet_write_blank_(int argc, VALUE *argv, VALUE self) {
+  lxw_row_t row;
+  lxw_col_t col;
+  VALUE format_key = Qnil;
+
+  rb_check_arity(argc, 1, 3);
+  int larg = extract_cell(argc, argv, &row, &col);
+
+  if (larg < argc) {
+    format_key = argv[larg];
+    ++larg;
+  }
+
   struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
   Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_write_blank(ptr->worksheet, NUM2INT(row), value_to_col(col), format);
+  worksheet_write_blank(ptr->worksheet, row, col, format);
   return self;
 }
 
-VALUE worksheet_write_formula_num_(VALUE self, VALUE row, VALUE col, VALUE formula, VALUE format_key, VALUE value) {
+VALUE worksheet_write_formula_num_(int argc, VALUE *argv, VALUE self) {
+  lxw_row_t row;
+  lxw_col_t col;
+  VALUE formula = Qnil;
+  VALUE value = Qnil;
+  VALUE format_key = Qnil;
+
+  rb_check_arity(argc, 3, 5);
+  int larg = extract_cell(argc, argv, &row, &col);
+
+  if (larg < argc) {
+    formula = argv[larg];
+    ++larg;
+  }
+
+  if (larg + 1 < argc) {
+    format_key = argv[larg];
+    ++larg;
+  }
+
+  if (larg < argc) {
+    value = argv[larg];
+    ++larg;
+  }
+
   const char *str = RSTRING_PTR(formula);
   struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
   Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_write_formula_num(ptr->worksheet, NUM2INT(row), value_to_col(col), str, format, NUM2DBL(value));
+  worksheet_write_formula_num(ptr->worksheet, row, col, str, format, NUM2DBL(value));
   return self;
 }
 
@@ -771,7 +897,63 @@ value_to_col(VALUE value) {
   case T_STRING:
     return lxw_name_to_col(RSTRING_PTR(value));
   default:
-    rb_raise(rb_eArgError, "wrong type for col");
+    rb_raise(rb_eTypeError, "Wrong type for col %"PRIsVALUE, rb_obj_class(value));
     return -1;
+  }
+}
+
+int
+extract_cell(int argc, VALUE *argv, lxw_row_t *row, lxw_col_t *col) {
+  char *str;
+  switch (TYPE(argv[0])) {
+  case T_STRING:
+    str = RSTRING_PTR(argv[0]);
+    if ((str[0] >= 'A' && str[0] <= 'Z') ||
+        (str[0] >= 'a' && str[0] <= 'z')) {
+      // Column in also in argv[0]
+      (*row) = lxw_name_to_row(str);
+      (*col) = lxw_name_to_col(str);
+      return 1;
+    } else {
+      if (argc > 1) {
+        (*row) = atoi(str);
+        switch(TYPE(argv[1])) {
+        case T_STRING:
+          str = RSTRING_PTR(argv[1]);
+          if ((str[0] >= 'A' && str[0] <= 'Z') ||
+              (str[0] >= 'a' && str[0] <= 'z')) {
+            (*col) = lxw_name_to_col(str);
+          } else {
+            (*col) = atoi(str);
+          }
+          return 2;
+        case T_FIXNUM:
+          (*col) = NUM2INT(argv[1]);
+          return 2;
+        default:
+          rb_raise(rb_eArgError, "Cannot extract column info from %"PRIsVALUE,
+                   rb_inspect(argv[1]));
+          return 0;
+        }
+      } else {
+        rb_raise(rb_eArgError, "Cannot extract column info from %"PRIsVALUE,
+                 rb_inspect(argv[0]));
+        return 0;
+      }
+    }
+    break;
+  case T_FIXNUM:
+    if (argc > 1) {
+      (*row) = NUM2INT(argv[0]);
+      (*col) = value_to_col(argv[1]);
+      return 2;
+    } else {
+      rb_raise(rb_eArgError, "Cannot extract column, not enough arguments");
+      return 0;
+    }
+    break;
+  default:
+    rb_raise(rb_eTypeError, "Expected string or number, got %"PRIsVALUE, rb_obj_class(argv[0]));
+    return 0;
   }
 }

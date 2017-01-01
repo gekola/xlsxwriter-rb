@@ -24,23 +24,27 @@ void Init_xlsxwriter() {
   rb_define_method(cWorkbook, "close", workbook_release, 0);
   rb_define_method(cWorkbook, "add_worksheet", workbook_add_worksheet_, -1);
   rb_define_method(cWorkbook, "add_format", workbook_add_format_, 2);
+  // rb_define_method(cWorkbook, "add_chart", workbook_add_format_, 2);
   rb_define_method(cWorkbook, "set_default_xf_indices", workbook_set_default_xf_indices_, 0);
   rb_define_method(cWorkbook, "properties", workbook_properties_, 0);
+  rb_define_method(cWorkbook, "define_name", workbook_define_name_, 2);
+  rb_define_method(cWorkbook, "validate_worksheet_name", workbook_validate_worksheet_name_, 1);
+
   rb_define_attr(cWorkbook, "font_sizes", 1, 0);
 
 
   rb_define_alloc_func(cWorksheet, worksheet_alloc);
   rb_define_method(cWorksheet, "initialize", worksheet_init, -1);
   rb_define_method(cWorksheet, "free", worksheet_release, 0);
-  rb_define_method(cWorksheet, "write_string", worksheet_write_string_, 4);
-  rb_define_method(cWorksheet, "write_number", worksheet_write_number_, 4);
-  rb_define_method(cWorksheet, "write_formula", worksheet_write_formula_, 4);
+  rb_define_method(cWorksheet, "write_string", worksheet_write_string_, -1);
+  rb_define_method(cWorksheet, "write_number", worksheet_write_number_, -1);
+  rb_define_method(cWorksheet, "write_formula", worksheet_write_formula_, -1);
   rb_define_method(cWorksheet, "write_array_formula", worksheet_write_array_formula_, 6);
-  rb_define_method(cWorksheet, "write_datetime", worksheet_write_datetime_, 4);
+  rb_define_method(cWorksheet, "write_datetime", worksheet_write_datetime_, -1);
   rb_define_method(cWorksheet, "write_url", worksheet_write_url_, -1);
-  rb_define_method(cWorksheet, "write_boolean", worksheet_write_boolean_, 4);
-  rb_define_method(cWorksheet, "write_blank", worksheet_write_blank_, 3);
-  rb_define_method(cWorksheet, "write_formula_num", worksheet_write_formula_num_, 5);
+  rb_define_method(cWorksheet, "write_boolean", worksheet_write_boolean_, -1);
+  rb_define_method(cWorksheet, "write_blank", worksheet_write_blank_, -1);
+  rb_define_method(cWorksheet, "write_formula_num", worksheet_write_formula_num_, -1);
   rb_define_method(cWorksheet, "set_row", worksheet_set_row_, 2);
   rb_define_method(cWorksheet, "set_column", worksheet_set_column_, 3);
   rb_define_method(cWorksheet, "insert_image", worksheet_insert_image_, 4);

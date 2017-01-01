@@ -60,6 +60,6 @@ class TestData < XlsxWriterTestCase
                       'xl/_rels/workbook.xml.rels']
     ws = wb.add_worksheet
 
-    ws.write_formula_num(0, 0, '=1+2', nil, 3)
+    ws.write_formula_num 'A1', '=1+2', 3
   end
 end

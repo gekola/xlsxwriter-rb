@@ -4,8 +4,8 @@ class TestSimple < XlsxWriterTestCase
   test 'simple01' do |wb|
     ws = wb.add_worksheet
 
-    ws.write_string(0, 0, 'Hello', nil)
-    ws.write_number(1, 0, 123,     nil)
+    ws.write_string(0, 0, 'Hello')
+    ws.write_number(1, 0, 123)
   end
 
   test 'simple02' do |wb|
@@ -15,12 +15,12 @@ class TestSimple < XlsxWriterTestCase
 
     wb.add_format(:bold, bold: true)
 
-    ws1.write_string(0, 0, 'Foo', nil)
-    ws1.write_number(1, 0, 123, nil)
+    ws1.write_string(0, 0, 'Foo')
+    ws1.write_number(1, 0, 123)
 
-    ws3.write_string(1, 1, 'Foo', nil)
-    ws3.write_string(2, 1, 'Bar', :bold);
-    ws3.write_number(3, 2, 234, nil);
+    ws3.write_string('1', '1', 'Foo')
+    ws3.write_string('2', 'B', 'Bar', :bold)
+    ws3.write_number('3', 2, 234)
   end
 
   test 'simple03' do |wb|
@@ -30,12 +30,12 @@ class TestSimple < XlsxWriterTestCase
 
     wb.add_format(:bold, bold: true);
 
-    ws1.write_string(0, 'A', 'Foo', nil)
-    ws1.write_number(1, 'A', 123,   nil)
+    ws1.write_string(0, 'A', 'Foo')
+    ws1.write_number(1, 'A', 123)
 
-    ws3.write_string(1, 'B', 'Foo', nil)
+    ws3.write_string(1, 'B', 'Foo')
     ws3.write_string(2, 'B', 'Bar', :bold)
-    ws3.write_number(3, 'C4', 234,  nil)
+    ws3.write_number('C4', 234)
 
     # Ensure the active worksheet is overwritten, below.
     x = ws2.activate
@@ -56,7 +56,7 @@ class TestSimple < XlsxWriterTestCase
 
     ws.set_column(0, 0, width: 12)
 
-    ws.write_datetime(0, 0, datetime1, :f1)
+    ws.write_datetime('A1', datetime1, :f1)
     ws.write_datetime(1, 0, datetime2, :f2)
   end
 end

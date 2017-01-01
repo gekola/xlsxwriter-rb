@@ -12,15 +12,15 @@ VALUE worksheet_alloc(VALUE klass);
 VALUE worksheet_init(int argc, VALUE *argv, VALUE self);
 VALUE worksheet_release(VALUE self);
 void worksheet_free(void *);
-VALUE worksheet_write_string_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE format);
-VALUE worksheet_write_number_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE format);
-VALUE worksheet_write_formula_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE format);
+VALUE worksheet_write_string_(int argc, VALUE *argv, VALUE self);
+VALUE worksheet_write_number_(int argc, VALUE *argv, VALUE self);
+VALUE worksheet_write_formula_(int argc, VALUE *argv, VALUE self);
 VALUE worksheet_write_array_formula_(VALUE self, VALUE row_from, VALUE col_from, VALUE row_to, VALUE col_to, VALUE value, VALUE format);
-VALUE worksheet_write_datetime_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE format);
+VALUE worksheet_write_datetime_(int argc, VALUE *argv, VALUE self);
 VALUE worksheet_write_url_(int argc, VALUE *argv, VALUE self);
-VALUE worksheet_write_boolean_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE format);
-VALUE worksheet_write_blank_(VALUE self, VALUE row, VALUE col, VALUE format);
-VALUE worksheet_write_formula_num_(VALUE self, VALUE row, VALUE col, VALUE formula, VALUE format, VALUE value);
+VALUE worksheet_write_boolean_(int argc, VALUE *argv, VALUE self);
+VALUE worksheet_write_blank_(int argc, VALUE *argv, VALUE self);
+VALUE worksheet_write_formula_num_(int argc, VALUE *argv, VALUE self);
 VALUE worksheet_set_row_(VALUE self, VALUE row, VALUE opts);
 VALUE worksheet_set_column_(VALUE self, VALUE col_from, VALUE col_to, VALUE opts);
 VALUE worksheet_insert_image_(VALUE self, VALUE row, VALUE col, VALUE fname, VALUE opts);
@@ -69,5 +69,8 @@ VALUE worksheet_set_vertical_dpi_(VALUE self, VALUE val);
 
 
 lxw_col_t value_to_col(VALUE value);
+int extract_cell(int argc, VALUE *argv, lxw_row_t *row, lxw_col_t *col);
+int extract_range(int argc, VALUE *argv, lxw_row_t *row1, lxw_col_t *col1,
+                                         lxw_row_t *row2, lxw_col_t *col2);
 
 #endif /// __WORKSHEET__
