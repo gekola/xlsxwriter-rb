@@ -1,20 +1,31 @@
 #include <ruby.h>
 #include "xlsxwriter.h"
 #include "workbook.h"
+#include "workbook_properties.h"
 #include "worksheet.h"
 
+VALUE mXlsxWriter;
+VALUE cWorkbook;
+VALUE cWorksheet;
+VALUE mXlsxFormat;
+VALUE cWorkbookProperties;
+
 void Init_xlsxwriter() {
-  VALUE mXlsxWriter = rb_define_module("XlsxWriter");
-  VALUE cWorkbook = rb_define_class_under(mXlsxWriter, "Workbook", rb_cObject);
-  VALUE cWorksheet = rb_define_class_under(mXlsxWriter, "Worksheet", rb_cObject);
-  VALUE mXlsxFormat = rb_define_module_under(mXlsxWriter, "Format");
+  mXlsxWriter = rb_define_module("XlsxWriter");
+  cWorkbook = rb_define_class_under(mXlsxWriter, "Workbook", rb_cObject);
+  cWorksheet = rb_define_class_under(mXlsxWriter, "Worksheet", rb_cObject);
+  mXlsxFormat = rb_define_module_under(mXlsxWriter, "Format");
+  cWorkbookProperties = rb_define_class_under(cWorkbook, "Properties", rb_cObject);
 
   rb_define_alloc_func(cWorkbook, workbook_alloc);
+  rb_define_singleton_method(cWorkbook, "new", workbook_new_, -1);
+  rb_define_alias(rb_singleton_class(cWorkbook), "open", "new");
   rb_define_method(cWorkbook, "initialize", workbook_init, -1);
-  rb_define_method(cWorkbook, "free", workbook_release, 0);
+  rb_define_method(cWorkbook, "close", workbook_release, 0);
   rb_define_method(cWorkbook, "add_worksheet", workbook_add_worksheet_, -1);
   rb_define_method(cWorkbook, "add_format", workbook_add_format_, 2);
   rb_define_method(cWorkbook, "set_default_xf_indices", workbook_set_default_xf_indices_, 0);
+  rb_define_method(cWorkbook, "properties", workbook_properties_, 0);
   rb_define_attr(cWorkbook, "font_sizes", 1, 0);
 
 
@@ -40,7 +51,7 @@ void Init_xlsxwriter() {
   rb_define_method(cWorksheet, "select", worksheet_select_, 0);
   rb_define_method(cWorksheet, "hide", worksheet_hide_, 0);
   rb_define_method(cWorksheet, "set_first_sheet", worksheet_set_first_sheet_, 0);
-  rb_define_method(cWorksheet, "freeze_panes", worksheet_freeze_panes_, 2);
+  rb_define_method(cWorksheet, "freeze_panes", worksheet_freeze_panes_, -1);
   rb_define_method(cWorksheet, "split_panes", worksheet_split_panes_, 2);
   rb_define_method(cWorksheet, "set_selection", worksheet_set_selection_, 4);
   rb_define_method(cWorksheet, "set_landscape", worksheet_set_landscape_, 0);
@@ -50,8 +61,8 @@ void Init_xlsxwriter() {
   rb_define_method(cWorksheet, "set_margins", worksheet_set_margins_, 4);
   rb_define_method(cWorksheet, "set_header", worksheet_set_header_, 1);
   rb_define_method(cWorksheet, "set_footer", worksheet_set_footer_, 1);
-  rb_define_method(cWorksheet, "set_h_pagebreaks", worksheet_set_h_pagebreaks_, 1);
-  rb_define_method(cWorksheet, "set_v_pagebreaks", worksheet_set_v_pagebreaks_, 1);
+  rb_define_method(cWorksheet, "h_pagebreaks=", worksheet_set_h_pagebreaks_, 1);
+  rb_define_method(cWorksheet, "v_pagebreaks=", worksheet_set_v_pagebreaks_, 1);
   rb_define_method(cWorksheet, "print_across", worksheet_print_across_, 0);
   rb_define_method(cWorksheet, "zoom=", worksheet_set_zoom_, 1);
   rb_define_method(cWorksheet, "gridlines=", worksheet_gridlines_, 1);
@@ -72,6 +83,21 @@ void Init_xlsxwriter() {
 
   rb_define_method(cWorksheet, "vertical_dpi", worksheet_get_vertical_dpi_, 0);
   rb_define_method(cWorksheet, "vertical_dpi=", worksheet_set_vertical_dpi_, 1);
+
+  rb_define_method(cWorkbookProperties, "initialize", workbook_properties_init_, 1);
+  rb_define_method(cWorkbookProperties, "[]=", workbook_properties_set_, 2);
+#define DEF_PROP_HANDLER(prop) rb_define_method(cWorkbookProperties, #prop "=", workbook_properties_set_dir_, 1);
+  DEF_PROP_HANDLER(title);
+  DEF_PROP_HANDLER(subject);
+  DEF_PROP_HANDLER(author);
+  DEF_PROP_HANDLER(manager);
+  DEF_PROP_HANDLER(company);
+  DEF_PROP_HANDLER(category);
+  DEF_PROP_HANDLER(keywords);
+  DEF_PROP_HANDLER(comments);
+  DEF_PROP_HANDLER(status);
+  DEF_PROP_HANDLER(hyperlink_base);
+#undef DEF_PROP_HANDLER
 
 
 #define MAP_LXW_FMT_CONST(name) rb_define_const(mXlsxFormat, #name, INT2NUM(LXW_##name))

@@ -14,8 +14,20 @@ workbook_alloc(VALUE klass)
   ptr->path = NULL;
   ptr->workbook = NULL;
   ptr->formats = NULL;
+  ptr->properties = NULL;
 
   return obj;
+}
+
+VALUE
+workbook_new_(int argc, VALUE *argv, VALUE self) {
+  VALUE workbook = rb_call_super(argc, argv);
+  if (rb_block_given_p()) {
+    rb_yield(workbook);
+    workbook_release(workbook);
+    return Qnil;
+  }
+  return workbook;
 }
 
 VALUE
@@ -49,6 +61,7 @@ workbook_init(int argc, VALUE *argv, VALUE self) {
   } else {
     ptr->workbook = workbook_new(ptr->path);
   }
+  ptr->properties = NULL;
   rb_iv_set(self, "@font_sizes", rb_hash_new());
 
   return self;
@@ -68,6 +81,9 @@ workbook_free(void *p) {
   struct workbook *ptr = p;
 
   if (ptr->workbook) {
+    if (ptr->properties) {
+      workbook_set_properties(ptr->workbook, ptr->properties);
+    }
     workbook_close(ptr->workbook);
     ptr->workbook = NULL;
   }
@@ -79,6 +95,28 @@ workbook_free(void *p) {
     st_free_table(ptr->formats);
     ptr->formats = NULL;
   };
+
+  if (ptr->properties) {
+#define FREE_PROP(prop) {              \
+      if (ptr->properties->prop) {     \
+        xfree(ptr->properties->prop);  \
+        ptr->properties->prop = NULL;  \
+      }                                \
+    }
+    FREE_PROP(title);
+    FREE_PROP(subject);
+    FREE_PROP(author);
+    FREE_PROP(manager);
+    FREE_PROP(company);
+    FREE_PROP(category);
+    FREE_PROP(keywords);
+    FREE_PROP(comments);
+    FREE_PROP(status);
+    FREE_PROP(hyperlink_base);
+#undef FREE_PROP
+    free(ptr->properties);
+    ptr->properties = NULL;
+  }
 }
 
 VALUE
@@ -96,6 +134,11 @@ workbook_add_worksheet_(int argc, VALUE *argv, VALUE self) {
     VALUE mXlsxWriter = rb_const_get(rb_cObject, rb_intern("XlsxWriter"));
     VALUE cWorksheet = rb_const_get(mXlsxWriter, rb_intern("Worksheet"));
     worksheet = rb_funcall(cWorksheet, rb_intern("new"), argc + 1, self, argv[0]);
+  }
+
+  if (rb_block_given_p()) {
+    VALUE res = rb_yield(worksheet);
+    return res;
   }
 
   return worksheet;
@@ -128,12 +171,19 @@ workbook_add_format_(VALUE self, VALUE key, VALUE opts) {
   return self;
 }
 
-
-VALUE workbook_set_default_xf_indices_(VALUE self) {
+VALUE
+workbook_set_default_xf_indices_(VALUE self) {
   struct workbook *ptr;
   Data_Get_Struct(self, struct workbook, ptr);
   lxw_workbook_set_default_xf_indices(ptr->workbook);
   return self;
+}
+
+VALUE
+workbook_properties_(VALUE self) {
+  VALUE props = rb_obj_alloc(cWorkbookProperties);
+  rb_obj_call_init(props, 1, &self);
+  return props;
 }
 
 
@@ -153,4 +203,22 @@ workbook_get_format(VALUE self, VALUE key) {
   st_lookup(ptr->formats, rb_to_id(key), (st_data_t *) &format);
 
   return format;
+}
+
+lxw_datetime
+value_to_lxw_datetime(VALUE val) {
+  const ID i_to_time = rb_intern("to_time");
+  if (rb_respond_to(val, i_to_time)) {
+    val = rb_funcall(val, i_to_time, 0);
+  }
+  lxw_datetime res = {
+    .year  = NUM2INT(rb_funcall(val, rb_intern("year"), 0)),
+    .month = NUM2INT(rb_funcall(val, rb_intern("month"), 0)),
+    .day   = NUM2INT(rb_funcall(val, rb_intern("day"), 0)),
+    .hour  = NUM2INT(rb_funcall(val, rb_intern("hour"), 0)),
+    .min   = NUM2INT(rb_funcall(val, rb_intern("min"), 0)),
+    .sec   = NUM2DBL(rb_funcall(val, rb_intern("sec"), 0)) +
+    NUM2DBL(rb_funcall(val, rb_intern("subsec"), 0))
+  };
+  return res;
 }

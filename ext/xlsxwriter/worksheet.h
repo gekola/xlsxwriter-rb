@@ -33,7 +33,7 @@ VALUE worksheet_activate_(VALUE self);
 VALUE worksheet_select_(VALUE self);
 VALUE worksheet_hide_(VALUE self);
 VALUE worksheet_set_first_sheet_(VALUE self);
-VALUE worksheet_freeze_panes_(VALUE self, VALUE row, VALUE col);
+VALUE worksheet_freeze_panes_(int argc, VALUE *argv, VALUE self);
 VALUE worksheet_split_panes_(VALUE self, VALUE vertical, VALUE horizontal);
 VALUE worksheet_set_selection_(VALUE self, VALUE row_from, VALUE col_from,
                                VALUE row_to, VALUE col_to);

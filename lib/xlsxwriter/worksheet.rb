@@ -1,5 +1,3 @@
-require 'date'
-
 class XlsxWriter::Worksheet
   attr_reader :current_row
 
@@ -21,8 +19,8 @@ class XlsxWriter::Worksheet
         write_number(row_idx, idx, value.to_f, cell_style)
       when :formula
         write_formula(row_idx, idx, value, cell_style)
-      when :datetime
-        write_datetime(row_idx, idx, value.to_datetime, cell_style)
+      when :datetime, :date, :time
+        write_datetime(row_idx, idx, value.to_time, cell_style)
       when :url
         write_url(row_idx, idx, value, cell_style)
         update_col_auto_width(idx, value.to_s, cell_style)
@@ -34,17 +32,19 @@ class XlsxWriter::Worksheet
         case value
         when Numeric
           write_number(row_idx, idx, value, cell_style)
-        when DateTime, Date, Time
-          write_datetime(row_idx, idx, value.to_datetime, cell_style)
         when TrueClass, FalseClass
           write_boolean(row_idx, idx, value, cell_style)
         when '', nil
           write_blank(row_idx, idx, cell_style)
         when /\A=/
           write_formula(row_idx, idx, value, cell_style)
-        else # assume string
-          write_string(row_idx, idx, value.to_s, cell_style)
-          update_col_auto_width(idx, value.to_s, cell_style)
+        else
+          if value.respond_to? :to_time
+            write_datetime(row_idx, idx, value.to_time, cell_style)
+          else # assume string
+            write_string(row_idx, idx, value.to_s, cell_style)
+            update_col_auto_width(idx, value.to_s, cell_style)
+          end
         end
       else
         raise ArgumentError, "Unknown cell type #{cell_type}."

@@ -46,8 +46,8 @@ class TestSimple < XlsxWriterTestCase
   end
 
   test 'simple04' do |wb|
-    datetime1 = DateTime.new(0,    1,  1, 12, 0, 0)
-    datetime2 = DateTime.new(2013, 1, 27,  0, 0, 0)
+    datetime1 = Time.new(0,    1,  1, 12)
+    datetime2 = Time.new(2013, 1, 27,  0)
 
     ws = wb.add_worksheet
 

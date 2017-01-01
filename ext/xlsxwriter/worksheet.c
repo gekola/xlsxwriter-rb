@@ -126,15 +126,7 @@ VALUE worksheet_write_array_formula_(VALUE self, VALUE row_from, VALUE col_from,
 
 VALUE
 worksheet_write_datetime_(VALUE self, VALUE row, VALUE col, VALUE value, VALUE format_key) {
-  struct lxw_datetime datetime = {
-    .year = NUM2INT(rb_funcall(value, rb_intern("year"), 0)),
-    .month = NUM2INT(rb_funcall(value, rb_intern("month"), 0)),
-    .day = NUM2INT(rb_funcall(value, rb_intern("day"), 0)),
-    .hour = NUM2INT(rb_funcall(value, rb_intern("hour"), 0)),
-    .min = NUM2INT(rb_funcall(value, rb_intern("min"), 0)),
-    .sec = NUM2DBL(rb_funcall(value, rb_intern("sec"), 0)) +
-           NUM2DBL(rb_funcall(value, rb_intern("second_fraction"), 0))
-  };
+  struct lxw_datetime datetime = value_to_lxw_datetime(value);
   struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
@@ -402,10 +394,27 @@ worksheet_set_first_sheet_(VALUE self) {
   return self;
 }
 VALUE
-worksheet_freeze_panes_(VALUE self, VALUE row, VALUE col) {
+worksheet_freeze_panes_(int argc, VALUE *argv, VALUE self) {
+  rb_check_arity(argc, 2, 5);
+  VALUE row = argv[0];
+  VALUE col = argv[1];
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_freeze_panes(ptr->worksheet, NUM2INT(row), value_to_col(col));
+  if (argc == 2) {
+    worksheet_freeze_panes(ptr->worksheet, NUM2INT(row), value_to_col(col));
+  } else {
+    VALUE row2 = row;
+    VALUE col2 = col;
+    uint8_t type = 0;
+    if (argc > 2)
+      row2 = argv[2];
+    if (argc > 3)
+      col2 = argv[3];
+    if (argc > 4)
+      type = NUM2INT(argv[4]);
+    worksheet_freeze_panes_opt(ptr->worksheet, NUM2INT(row), value_to_col(col),
+                               NUM2INT(row2), value_to_col(col2), type);
+  }
   return self;
 }
 
@@ -521,7 +530,7 @@ worksheet_set_h_pagebreaks_(VALUE self, VALUE val) {
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
   worksheet_set_h_pagebreaks(ptr->worksheet, rows);
-  return self;
+  return val;
 }
 
 VALUE
@@ -535,7 +544,7 @@ worksheet_set_v_pagebreaks_(VALUE self, VALUE val) {
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
   worksheet_set_v_pagebreaks(ptr->worksheet, cols);
-  return self;
+  return val;
 }
 
 VALUE
@@ -663,21 +672,43 @@ worksheet_set_tab_color_(VALUE self, VALUE color) {
 
 VALUE
 worksheet_protect_(int argc, VALUE *argv, VALUE self) {
-  rb_check_arity(argc, 1, 2);
+  rb_check_arity(argc, 0, 2);
   uint8_t with_options = '\0';
   VALUE val;
+  VALUE opts = Qnil;
   lxw_protection options;
-  const char *password = StringValueCStr(argv[0]);
+  const char *password = NULL;
+  if (argc > 0 && !NIL_P(argv[0])) {
+    switch (TYPE(argv[0])) {
+    case T_STRING:
+      password = StringValueCStr(argv[0]);
+      break;
+    case T_HASH:
+      opts = argv[0];
+      break;
+    default:
+      rb_raise(rb_eArgError, "Wrong argument %"PRIsVALUE", expected a String or Hash", rb_obj_class(argv[0]));
+    }
+  }
+
+  if (argc > 1) {
+    if (TYPE(argv[1]) == T_HASH) {
+      opts = argv[1];
+    } else {
+      rb_raise(rb_eArgError, "Expected a Hash, but got %"PRIsVALUE, rb_obj_class(argv[1]));
+    }
+  }
+
   // All options are off by default
   memset(&options, 0, sizeof options);
 
-  if (argc > 1) {
-#define PR_OPT(field) {                                       \
-      val = rb_hash_aref(argv[1], ID2SYM(rb_intern(#field))); \
-      if (!NIL_P(val) && val) {                               \
-        options.field = 1;                                    \
-        with_options = 1;                                     \
-      }                                                       \
+  if (!NIL_P(opts)) {
+#define PR_OPT(field) {                                    \
+      val = rb_hash_aref(opts, ID2SYM(rb_intern(#field))); \
+      if (!NIL_P(val) && val) {                            \
+        options.field = 1;                                 \
+        with_options = 1;                                  \
+      }                                                    \
     }
     PR_OPT(no_select_locked_cells);
     PR_OPT(no_select_unlocked_cells);
