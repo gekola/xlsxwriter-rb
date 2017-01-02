@@ -18,7 +18,7 @@ task :fetch_dep do
   rev = File.read('.dep_revision').chomp if File.exist?('.dep_revision')
 
   unless File.exist?('./ext/xlsxwriter/libxlsxwriter')
-    `git clone git@github.com:jmcnamara/libxlsxwriter.git #{DEP_DIR}`
+    `git clone https://github.com/jmcnamara/libxlsxwriter.git #{DEP_DIR}`
   else
     `cd #{DEP_DIR} && git fetch`
   end
