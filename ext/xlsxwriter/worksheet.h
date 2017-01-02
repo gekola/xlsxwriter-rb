@@ -12,6 +12,7 @@ VALUE worksheet_alloc(VALUE klass);
 VALUE worksheet_init(int argc, VALUE *argv, VALUE self);
 VALUE worksheet_release(VALUE self);
 void worksheet_free(void *);
+
 VALUE worksheet_write_string_(int argc, VALUE *argv, VALUE self);
 VALUE worksheet_write_number_(int argc, VALUE *argv, VALUE self);
 VALUE worksheet_write_formula_(int argc, VALUE *argv, VALUE self);

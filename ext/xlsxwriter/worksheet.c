@@ -1,3 +1,4 @@
+#include "chart.h"
 #include "worksheet.h"
 #include "workbook.h"
 
@@ -457,6 +458,7 @@ worksheet_insert_image_(int argc, VALUE *argv, VALUE self) {
     .y_scale = 1.0
   };
   char with_options = '\0';
+
   rb_check_arity(argc, 2, 4);
   int larg = extract_cell(argc, argv, &row, &col);
 
@@ -495,7 +497,27 @@ worksheet_insert_image_(int argc, VALUE *argv, VALUE self) {
 
 VALUE
 worksheet_insert_chart_(int argc, VALUE *argv, VALUE self) {
-  rb_raise(rb_eRuntimeError, "worksheet_insert_chart is not ported yet");
+  lxw_row_t row;
+  lxw_col_t col;
+  VALUE chart;
+
+  rb_check_arity(argc, 2, 3);
+  int larg = extract_cell(argc, argv, &row, &col);
+
+  if (larg < argc) {
+    chart = argv[larg];
+    ++larg;
+  } else {
+    rb_raise(rb_eArgError, "No chart specified");
+  }
+
+  struct worksheet *ptr;
+  struct chart *chart_ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  Data_Get_Struct(chart, struct chart, chart_ptr);
+
+  worksheet_insert_chart(ptr->worksheet, row, col, chart_ptr->chart);
+
   return self;
 }
 

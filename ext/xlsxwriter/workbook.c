@@ -125,7 +125,7 @@ workbook_add_worksheet_(int argc, VALUE *argv, VALUE self) {
 
   if (argc > 1) {
     rb_raise(rb_eArgError, "wrong number of arguments");
-    return self;
+    return Qnil;
   }
 
   struct workbook *ptr;
@@ -169,6 +169,16 @@ workbook_add_format_(VALUE self, VALUE key, VALUE opts) {
   }
 
   return self;
+}
+
+VALUE
+workbook_add_chart_(VALUE self, VALUE type) {
+  VALUE chart = rb_funcall(cChart, rb_intern("new"), 2, self, type);
+  if (rb_block_given_p()) {
+    VALUE res = rb_yield(chart);
+    return res;
+  }
+  return chart;
 }
 
 VALUE
@@ -243,5 +253,5 @@ value_to_lxw_datetime(VALUE val) {
 
 void
 handle_lxw_error(lxw_error err) {
-  
+  return;
 }

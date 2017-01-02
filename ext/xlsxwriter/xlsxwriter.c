@@ -1,5 +1,6 @@
 #include <ruby.h>
 #include "xlsxwriter.h"
+#include "chart.h"
 #include "workbook.h"
 #include "workbook_properties.h"
 #include "worksheet.h"
@@ -9,13 +10,20 @@ VALUE cWorkbook;
 VALUE cWorksheet;
 VALUE mXlsxFormat;
 VALUE cWorkbookProperties;
+VALUE cChart;
+VALUE cChartSeries;
+VALUE cChartAxis;
 
 void Init_xlsxwriter() {
-  mXlsxWriter = rb_define_module("XlsxWriter");
-  cWorkbook = rb_define_class_under(mXlsxWriter, "Workbook", rb_cObject);
-  cWorksheet = rb_define_class_under(mXlsxWriter, "Worksheet", rb_cObject);
-  mXlsxFormat = rb_define_module_under(mXlsxWriter, "Format");
-  cWorkbookProperties = rb_define_class_under(cWorkbook, "Properties", rb_cObject);
+  mXlsxWriter  = rb_define_module("XlsxWriter");
+  mXlsxFormat  = rb_define_module_under(mXlsxWriter, "Format");
+  cWorkbook    = rb_define_class_under(mXlsxWriter,  "Workbook",   rb_cObject);
+  cWorksheet   = rb_define_class_under(mXlsxWriter,  "Worksheet",  rb_cObject);
+  cWorkbookProperties
+               = rb_define_class_under(cWorkbook,    "Properties", rb_cObject);
+  cChart       = rb_define_class_under(cWorkbook,    "Chart",      rb_cObject);
+  cChartSeries = rb_define_class_under(cChart,       "Series",     rb_cObject);
+  cChartAxis   = rb_define_class_under(cChart,       "Axis",       rb_cObject);
 
   rb_define_alloc_func(cWorkbook, workbook_alloc);
   rb_define_singleton_method(cWorkbook, "new", workbook_new_, -1);
@@ -24,7 +32,7 @@ void Init_xlsxwriter() {
   rb_define_method(cWorkbook, "close", workbook_release, 0);
   rb_define_method(cWorkbook, "add_worksheet", workbook_add_worksheet_, -1);
   rb_define_method(cWorkbook, "add_format", workbook_add_format_, 2);
-  // rb_define_method(cWorkbook, "add_chart", workbook_add_format_, 2);
+  rb_define_method(cWorkbook, "add_chart", workbook_add_chart_, 1);
   rb_define_method(cWorkbook, "set_default_xf_indices", workbook_set_default_xf_indices_, 0);
   rb_define_method(cWorkbook, "properties", workbook_properties_, 0);
   rb_define_method(cWorkbook, "define_name", workbook_define_name_, 2);
@@ -102,6 +110,19 @@ void Init_xlsxwriter() {
   DEF_PROP_HANDLER(status);
   DEF_PROP_HANDLER(hyperlink_base);
 #undef DEF_PROP_HANDLER
+
+
+  rb_define_alloc_func(cChart, chart_alloc);
+  rb_define_method(cChart, "initialize", chart_init, 2);
+  rb_define_method(cChart, "add_series", chart_add_series_, -1);
+
+  rb_define_method(cChart, "axis_id_1",  chart_get_axis_id_1_, 0);
+  rb_define_method(cChart, "axis_id_1=", chart_set_axis_id_1_, 1);
+  rb_define_method(cChart, "axis_id_2",  chart_get_axis_id_2_, 0);
+  rb_define_method(cChart, "axis_id_2=", chart_set_axis_id_2_, 1);
+
+  rb_define_alloc_func(cChartSeries, chart_series_alloc);
+  rb_define_method(cChartSeries, "initialize", chart_series_init, -1);
 
 
 #define MAP_LXW_FMT_CONST(name) rb_define_const(mXlsxFormat, #name, INT2NUM(LXW_##name))
@@ -191,4 +212,28 @@ void Init_xlsxwriter() {
   MAP_LXW_WH_CONST(GRIDLINES_SHOW_PRINT, SHOW_PRINT_GRIDLINES);
   MAP_LXW_WH_CONST(GRIDLINES_SHOW_ALL, SHOW_ALL_GRIDLINES);
 #undef MAP_LXW_WH_CONST
+
+#define MAP_CHART_CONST(name) rb_define_const(cChart, #name, INT2NUM(LXW_CHART_##name))
+  MAP_CHART_CONST(NONE);
+  MAP_CHART_CONST(AREA);
+  MAP_CHART_CONST(AREA_STACKED);
+  MAP_CHART_CONST(AREA_STACKED_PERCENT);
+  MAP_CHART_CONST(BAR);
+  MAP_CHART_CONST(BAR_STACKED);
+  MAP_CHART_CONST(BAR_STACKED_PERCENT);
+  MAP_CHART_CONST(COLUMN);
+  MAP_CHART_CONST(COLUMN_STACKED);
+  MAP_CHART_CONST(COLUMN_STACKED_PERCENT);
+  MAP_CHART_CONST(DOUGHNUT);
+  MAP_CHART_CONST(LINE);
+  MAP_CHART_CONST(PIE);
+  MAP_CHART_CONST(SCATTER);
+  MAP_CHART_CONST(SCATTER_STRAIGHT);
+  MAP_CHART_CONST(SCATTER_STRAIGHT_WITH_MARKERS);
+  MAP_CHART_CONST(SCATTER_SMOOTH);
+  MAP_CHART_CONST(SCATTER_SMOOTH_WITH_MARKERS);
+  MAP_CHART_CONST(RADAR);
+  MAP_CHART_CONST(RADAR_WITH_MARKERS);
+  MAP_CHART_CONST(RADAR_FILLED);
+#undef MAP_CHART_CONST
 }

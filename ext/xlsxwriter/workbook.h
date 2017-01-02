@@ -16,8 +16,10 @@ VALUE workbook_new_(int argc, VALUE *argv, VALUE self);
 VALUE workbook_init(int argc, VALUE *argv, VALUE self);
 VALUE workbook_release(VALUE self);
 void workbook_free(void *);
+
 VALUE workbook_add_worksheet_(int argc, VALUE *argv, VALUE self);
 VALUE workbook_add_format_(VALUE self, VALUE key, VALUE opts);
+VALUE workbook_add_chart_(VALUE self, VALUE type);
 VALUE workbook_set_default_xf_indices_(VALUE self);
 VALUE workbook_properties_(VALUE self);
 VALUE workbook_define_name_(VALUE self, VALUE name, VALUE formula);
@@ -33,5 +35,8 @@ extern VALUE cWorkbook;
 extern VALUE cWorksheet;
 extern VALUE mXlsxFormat;
 extern VALUE cWorkbookProperties;
+extern VALUE cChart;
+extern VALUE cChartSeries;
+extern VALUE cChartAxis;
 
 #endif // __WORKBOOK__
