@@ -39,7 +39,9 @@ class XlsxWriter::Worksheet
         when /\A=/
           write_formula(row_idx, idx, value, cell_style)
         else
-          if value.respond_to? :to_time
+          if value.is_a?(Time) ||
+             (defined?(Date) && value.is_a?(Date)) ||
+             (defined?(DateTime) && value.is_a?(DateTime))
             write_datetime(row_idx, idx, value.to_time, cell_style)
           else # assume string
             write_string(row_idx, idx, value.to_s, cell_style)
