@@ -436,27 +436,13 @@ worksheet_set_column_(VALUE self, VALUE col_from, VALUE col_to, VALUE opts) {
   return self;
 }
 
-#define SET_IMG_OPT(key, setter) {                    \
-    val = rb_hash_aref(opts, ID2SYM(rb_intern(key))); \
-    if (!NIL_P(val)) {                                \
-      with_options = '\1';                            \
-      setter;                                         \
-    }                                                 \
-  }
-
 VALUE
 worksheet_insert_image_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row;
   lxw_col_t col;
   VALUE fname = Qnil;
   VALUE opts = Qnil;
-  VALUE val = Qnil;
-  lxw_image_options options = {
-    .x_offset = 0,
-    .y_offset = 0,
-    .x_scale = 1.0,
-    .y_scale = 1.0
-  };
+  lxw_image_options options;
   char with_options = '\0';
 
   rb_check_arity(argc, 2, 4);
@@ -476,12 +462,7 @@ worksheet_insert_image_(int argc, VALUE *argv, VALUE self) {
   Data_Get_Struct(self, struct worksheet, ptr);
 
   if (!NIL_P(opts)) {
-    SET_IMG_OPT("offset",   options.x_offset = options.y_offset = NUM2INT(val));
-    SET_IMG_OPT("x_offset", options.x_offset =                    NUM2INT(val));
-    SET_IMG_OPT("y_offset",                    options.y_offset = NUM2INT(val));
-    SET_IMG_OPT("scale",    options.x_scale  = options.y_scale  = NUM2DBL(val));
-    SET_IMG_OPT("x_scale",  options.x_scale  =                    NUM2DBL(val));
-    SET_IMG_OPT("y_scale",                     options.y_scale  = NUM2DBL(val));
+    options = val_to_lxw_image_options(opts, &with_options);
   }
 
   if (with_options) {
@@ -499,9 +480,11 @@ VALUE
 worksheet_insert_chart_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row;
   lxw_col_t col;
-  VALUE chart;
+  VALUE chart, opts = Qnil;
+  lxw_image_options options;
+  char with_options = '\0';
 
-  rb_check_arity(argc, 2, 3);
+  rb_check_arity(argc, 2, 4);
   int larg = extract_cell(argc, argv, &row, &col);
 
   if (larg < argc) {
@@ -511,12 +494,25 @@ worksheet_insert_chart_(int argc, VALUE *argv, VALUE self) {
     rb_raise(rb_eArgError, "No chart specified");
   }
 
+  if (larg < argc) {
+    opts = argv[larg];
+    ++larg;
+  }
+
+  if (!NIL_P(opts)) {
+    options = val_to_lxw_image_options(opts, &with_options);
+  }
+
   struct worksheet *ptr;
   struct chart *chart_ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
   Data_Get_Struct(chart, struct chart, chart_ptr);
 
-  worksheet_insert_chart(ptr->worksheet, row, col, chart_ptr->chart);
+  if (with_options) {
+    worksheet_insert_chart_opt(ptr->worksheet, row, col, chart_ptr->chart, &options);
+  } else {
+    worksheet_insert_chart(ptr->worksheet, row, col, chart_ptr->chart);
+  }
 
   return self;
 }
@@ -1062,3 +1058,29 @@ int extract_range(int argc, VALUE *argv, lxw_row_t *row_from, lxw_col_t *col_fro
   larg += extract_cell(argc - larg, argv + larg, row_to, col_to);
   return larg;
 }
+
+#define SET_IMG_OPT(key, setter) {                    \
+    val = rb_hash_aref(opts, ID2SYM(rb_intern(key))); \
+    if (!NIL_P(val)) {                                \
+      (*with_options) = '\1';                         \
+      setter;                                         \
+    }                                                 \
+  }
+lxw_image_options
+val_to_lxw_image_options(VALUE opts, char *with_options) {
+  VALUE val;
+  lxw_image_options options = {
+    .x_offset = 0,
+    .y_offset = 0,
+    .x_scale = 1.0,
+    .y_scale = 1.0
+  };
+  SET_IMG_OPT("offset",   options.x_offset = options.y_offset = NUM2INT(val));
+  SET_IMG_OPT("x_offset", options.x_offset =                    NUM2INT(val));
+  SET_IMG_OPT("y_offset",                    options.y_offset = NUM2INT(val));
+  SET_IMG_OPT("scale",    options.x_scale  = options.y_scale  = NUM2DBL(val));
+  SET_IMG_OPT("x_scale",  options.x_scale  =                    NUM2DBL(val));
+  SET_IMG_OPT("y_scale",                     options.y_scale  = NUM2DBL(val));
+  return options;
+}
+#undef SET_IMG_OPT

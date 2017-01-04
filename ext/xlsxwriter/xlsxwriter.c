@@ -115,15 +115,38 @@ void Init_xlsxwriter() {
   rb_define_alloc_func(cChart, chart_alloc);
   rb_define_method(cChart, "initialize", chart_init, 2);
   rb_define_method(cChart, "add_series", chart_add_series_, -1);
+  rb_define_method(cChart, "x_axis", chart_x_axis_, 0);
+  rb_define_method(cChart, "y_axis", chart_y_axis_, 0);
+  rb_define_method(cChart, "title=", chart_title_set_name_, 1);
+  rb_define_method(cChart, "legend_position=", chart_legend_set_position_, 1);
+  rb_define_method(cChart, "legend_set_font", chart_legend_set_font_, 1);
+  rb_define_method(cChart, "legend_delete_series", chart_legend_delete_series_, 1);
+  rb_define_method(cChart, "style=", chart_set_style_, 1);
+  rb_define_method(cChart, "rotation=", chart_set_rotation_, 1);
+  rb_define_method(cChart, "hole_size=", chart_set_hole_size_, 1);
 
   rb_define_method(cChart, "axis_id_1",  chart_get_axis_id_1_, 0);
   rb_define_method(cChart, "axis_id_1=", chart_set_axis_id_1_, 1);
   rb_define_method(cChart, "axis_id_2",  chart_get_axis_id_2_, 0);
   rb_define_method(cChart, "axis_id_2=", chart_set_axis_id_2_, 1);
 
+  rb_define_alloc_func(cChartAxis, chart_axis_alloc);
+  rb_define_method(cChartAxis, "initialize", chart_axis_init, 2);
+
+  rb_define_method(cChartAxis, "name=", chart_axis_set_name_, 1);
+  rb_define_method(cChartAxis, "set_name_range", chart_axis_set_name_range_, -1);
+  rb_define_method(cChartAxis, "set_name_font", chart_axis_set_name_font_, 1);
+  rb_define_method(cChartAxis, "set_num_font", chart_axis_set_num_font_, 1);
+  rb_define_method(cChartAxis, "set_line", chart_axis_set_line_, 1);
+  rb_define_method(cChartAxis, "set_fill", chart_axis_set_fill_, 1);
+
   rb_define_alloc_func(cChartSeries, chart_series_alloc);
   rb_define_method(cChartSeries, "initialize", chart_series_init, -1);
 
+  rb_define_method(cChartSeries, "set_categories", chart_series_set_categories_, -1);
+  rb_define_method(cChartSeries, "set_values", chart_series_set_values_, -1);
+  rb_define_method(cChartSeries, "name=", chart_series_set_name_, 1);
+  rb_define_method(cChartSeries, "set_name_range", chart_series_set_name_range_, -1);
 
 #define MAP_LXW_FMT_CONST(name) rb_define_const(mXlsxFormat, #name, INT2NUM(LXW_##name))
   MAP_LXW_FMT_CONST(COLOR_BLACK);
@@ -235,5 +258,14 @@ void Init_xlsxwriter() {
   MAP_CHART_CONST(RADAR);
   MAP_CHART_CONST(RADAR_WITH_MARKERS);
   MAP_CHART_CONST(RADAR_FILLED);
+
+  MAP_CHART_CONST(LEGEND_NONE);
+  MAP_CHART_CONST(LEGEND_RIGHT);
+  MAP_CHART_CONST(LEGEND_LEFT);
+  MAP_CHART_CONST(LEGEND_TOP);
+  MAP_CHART_CONST(LEGEND_BOTTOM);
+  MAP_CHART_CONST(LEGEND_OVERLAY_RIGHT);
+  MAP_CHART_CONST(LEGEND_OVERLAY_LEFT);
+
 #undef MAP_CHART_CONST
 }

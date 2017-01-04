@@ -1,6 +1,7 @@
 class XlsxWriter::Worksheet
   attr_reader :current_row
 
+  # Column width logic mimics axlsx behaviour
   THIN_CHARS = '^.acfijklrstxzFIJL()-'.freeze
 
   def add_row(row, style: nil, height: nil, types: nil)

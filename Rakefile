@@ -30,7 +30,7 @@ task :fetch_dep do
   end
 
   Dir['./dep_patches/*.patch'].each do |patch|
-    `(cd #{DEP_DIR} && patch -p1) <#{patch}`
+    `(cd #{DEP_DIR} && patch -N -p1) <#{patch}`
   end
 end
 
