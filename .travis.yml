@@ -11,7 +11,3 @@ rvm:
 matrix:
   allow_failures:
     - rvm: ruby-head
-
-before_install:
-  - bundle install
-  - rake fetch_dep

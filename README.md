@@ -1,5 +1,4 @@
-# XlsxWriter
----
+# XlsxWriter [![Build Status](https://travis-ci.org/gekola/xlsxwriter-rb.svg?branch=master)](https://travis-ci.org/gekola/xlsxwriter-rb)
 
 ## Description
 
