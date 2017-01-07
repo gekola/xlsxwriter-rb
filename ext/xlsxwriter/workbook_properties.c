@@ -4,6 +4,9 @@
 #include "workbook.h"
 #include "workbook_properties.h"
 
+VALUE cWorkbookProperties;
+
+/* :nodoc: */
 VALUE
 workbook_properties_init_(VALUE self, VALUE workbook) {
   struct workbook *wb_ptr;
@@ -18,20 +21,11 @@ workbook_properties_init_(VALUE self, VALUE workbook) {
   return self;
 }
 
-VALUE
-workbook_properties_set_dir_(VALUE self, VALUE value) {
-  VALUE key = rb_id2str(rb_frame_callee());
-  char *key_str = ruby_strdup(RSTRING_PTR(key));
-  size_t last_pos = RSTRING_LEN(key) - 1;
-  if (last_pos > 0 && key_str[last_pos] == '=') {
-    key_str[last_pos] = '\0';
-  }
-  key = rb_str_new_cstr(key_str);
-  workbook_properties_set_(self, key, value);
-  xfree(key_str);
-  return value;
-}
-
+/*  call-seq: wb_properies[property]= value
+ *
+ *  Sets a document +property+ (both custom and standard).
+ *  Property type is automatically deduced from the +value+.
+ */
 VALUE
 workbook_properties_set_(VALUE self, VALUE key, VALUE value) {
   char *key_cstr = NULL;
@@ -100,4 +94,57 @@ workbook_properties_set_(VALUE self, VALUE key, VALUE value) {
     break;
   }
   return value;
+}
+
+VALUE
+workbook_properties_set_dir_(VALUE self, VALUE value) {
+  VALUE key = rb_id2str(rb_frame_callee());
+  char *key_str = ruby_strdup(RSTRING_PTR(key));
+  size_t last_pos = RSTRING_LEN(key) - 1;
+  if (last_pos > 0 && key_str[last_pos] == '=') {
+    key_str[last_pos] = '\0';
+  }
+  key = rb_str_new_cstr(key_str);
+  workbook_properties_set_(self, key, value);
+  xfree(key_str);
+  return value;
+}
+
+/*  Document-class: XlsxWriter::Workbook::Properties
+ *
+ *  The class defines accessors for workbook properties.
+ *
+ *  Setting standard workbook text properties:
+ *
+ *     wb_properties.title = title
+ *     wb_properties.subject = subjet
+ *     wb_properties.author = author
+ *     wb_properties.manager = manager
+ *     wb_properties.company = company
+ *     wb_properties.category = category
+ *     wb_properties.keywords = keywords
+ *     wb_properties.comments = comments
+ *     wb_properties.status = status
+ *
+ *  You can see the properties under Office Button -> Prepare -> Properties
+ *  in Excel.
+ */
+void
+init_xlsxwriter_workbook_properties() {
+  cWorkbookProperties = rb_define_class_under(cWorkbook, "Properties", rb_cObject);
+
+  rb_define_method(cWorkbookProperties, "initialize", workbook_properties_init_, 1);
+  rb_define_method(cWorkbookProperties, "[]=", workbook_properties_set_, 2);
+#define DEF_PROP_HANDLER(prop) rb_define_method(cWorkbookProperties, #prop "=", workbook_properties_set_dir_, 1);
+  DEF_PROP_HANDLER(title);
+  DEF_PROP_HANDLER(subject);
+  DEF_PROP_HANDLER(author);
+  DEF_PROP_HANDLER(manager);
+  DEF_PROP_HANDLER(company);
+  DEF_PROP_HANDLER(category);
+  DEF_PROP_HANDLER(keywords);
+  DEF_PROP_HANDLER(comments);
+  DEF_PROP_HANDLER(status);
+  DEF_PROP_HANDLER(hyperlink_base);
+#undef DEF_PROP_HANDLER
 }

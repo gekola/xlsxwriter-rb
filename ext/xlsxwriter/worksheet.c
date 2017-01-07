@@ -2,6 +2,11 @@
 #include "worksheet.h"
 #include "workbook.h"
 
+VALUE cWorksheet;
+
+void worksheet_free(void *p);
+
+
 VALUE
 worksheet_alloc(VALUE klass)
 {
@@ -15,6 +20,7 @@ worksheet_alloc(VALUE klass)
   return obj;
 }
 
+/* :nodoc: */
 VALUE
 worksheet_init(int argc, VALUE *argv, VALUE self) {
   char *name = NULL;
@@ -64,6 +70,7 @@ worksheet_init(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/* :nodoc: */
 VALUE
 worksheet_release(VALUE self) {
   struct worksheet *ptr;
@@ -82,6 +89,12 @@ worksheet_free(void *p) {
   }
 }
 
+/*  call-seq:
+ *     ws.write_string(cell, value, format = nil) -> self
+ *     ws.write_string(row, col, value, format = nil) -> self
+ *
+ *  Writes a string +value+ into a +cell+ with +format+.
+ */
 VALUE
 worksheet_write_string_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row;
@@ -111,6 +124,12 @@ worksheet_write_string_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/*  call-seq:
+ *     ws.number_string(cell, value, format = nil) -> self
+ *     ws.number_string(row, col, value, format = nil) -> self
+ *
+ *  Writes a number +value+ into a +cell+ with +format+.
+ */
 VALUE
 worksheet_write_number_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row;
@@ -140,6 +159,12 @@ worksheet_write_number_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/*  call-seq:
+ *     ws.write_formula(cell, formula, format = nil) -> self
+ *     ws.write_formula(row, col, formula, format = nil) -> self
+ *
+ *  Writes a +formula+ into a +cell+ with +format+.
+ */
 VALUE
 worksheet_write_formula_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row;
@@ -169,6 +194,13 @@ worksheet_write_formula_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/*  call-seq:
+ *     ws.write_array_formula(range, formula, format = nil) -> self
+ *     ws.write_array_formula(cell_from, cell_to, formula, format = nil) -> self
+ *     ws.write_array_formula(row_from, col_from, row_to, col_to, formula, format = nil) -> self
+ *
+ *  Writes an array +formula+ into a cell +range+ with +format+.
+ */
 VALUE worksheet_write_array_formula_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row_from, row_to;
   lxw_col_t col_from, col_to;
@@ -196,6 +228,12 @@ VALUE worksheet_write_array_formula_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/*  call-seq:
+ *     ws.write_datetime(cell, value, format = nil) -> self
+ *     ws.write_datetime(row, col, value, format = nil) -> self
+ *
+ *  Writes a datetime +value+ into a +cell+ with +format+.
+ */
 VALUE
 worksheet_write_datetime_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row;
@@ -225,6 +263,12 @@ worksheet_write_datetime_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/*  call-seq:
+ *     ws.write_url(cell, url, format = nil, string: nil, tooltip: nil, format: nil) -> self
+ *     ws.write_url(row, col, url, format = nil, string: nil, tooltip: nil, format: nil) -> self
+ *
+ *  Writes a +url+ into a +cell+ with +format+.
+ */
 VALUE
 worksheet_write_url_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row;
@@ -284,6 +328,12 @@ worksheet_write_url_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/*  call-seq:
+ *     ws.write_boolean(cell, value, format = nil) -> self
+ *     ws.write_boolean(row, col, value, format = nil) -> self
+ *
+ *  Writes a boolean +value+ into a +cell+ with +format+.
+ */
 VALUE
 worksheet_write_boolean_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row;
@@ -312,6 +362,12 @@ worksheet_write_boolean_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/*  call-seq:
+ *     ws.write_datetime(cell, format = nil) -> self
+ *     ws.write_datetime(row, col, format = nil) -> self
+ *
+ *  Make a +cell+ blank with +format+.
+ */
 VALUE
 worksheet_write_blank_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row;
@@ -334,6 +390,12 @@ worksheet_write_blank_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/*  call-seq:
+ *     ws.write_formula_num(cell, formula, value, format = nil) -> self
+ *     ws.write_formula_num(row, col, formula, value, format = nil) -> self
+ *
+ *  Writes a +formula+ with +value+ into a +cell+ with +format+.
+ */
 VALUE worksheet_write_formula_num_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row;
   lxw_col_t col;
@@ -349,13 +411,13 @@ VALUE worksheet_write_formula_num_(int argc, VALUE *argv, VALUE self) {
     ++larg;
   }
 
-  if (larg + 1 < argc) {
-    format_key = argv[larg];
+  if (larg < argc) {
+    value = argv[larg];
     ++larg;
   }
 
   if (larg < argc) {
-    value = argv[larg];
+    format_key = argv[larg];
     ++larg;
   }
 
@@ -368,6 +430,10 @@ VALUE worksheet_write_formula_num_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/*  call-seq: ws.set_row(row, height: nil, format: nil, hide: false) -> self
+ *
+ *  Set properties of the row.
+ */
 VALUE
 worksheet_set_row_(VALUE self, VALUE row, VALUE opts) {
   double height = LXW_DEF_ROW_HEIGHT;
@@ -401,6 +467,10 @@ worksheet_set_row_(VALUE self, VALUE row, VALUE opts) {
   return self;
 }
 
+/*  call-seq: ws.set_column(col_from, col_to, width: nil, format: nil, hide: nil) -> self
+ *
+ *  Set properties of the cols range.
+ */
 VALUE
 worksheet_set_column_(VALUE self, VALUE col_from, VALUE col_to, VALUE opts) {
   double width = LXW_DEF_COL_WIDTH;
@@ -436,6 +506,16 @@ worksheet_set_column_(VALUE self, VALUE col_from, VALUE col_to, VALUE opts) {
   return self;
 }
 
+/*  call-seq:
+ *     ws.insert_image(cell, fname, opts = {}) -> self
+ *     ws.insert_image(row, col, fname, opts = {}) -> self
+ *
+ *  Inserts image from +fname+ into the worksheet (at +cell+).
+ *
+ *  Available +opts+
+ *  :offset, :x_offset, :y_offset:: Image offset (+:offset+ for both; Integer).
+ *  :scale, :x_scale, :y_scale:: Image scale (+:scale+ for both; Numeric).
+ */
 VALUE
 worksheet_insert_image_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row;
@@ -474,8 +554,14 @@ worksheet_insert_image_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
-#undef SET_IMG_OPT
-
+/*  call-seq:
+ *     ws.insert_chart(cell, chart, opts = {}) -> self
+ *     ws.insert_chart(row, col, chart, opts = {}) -> self
+ *
+ *  Inserts chart from +fname+ into the worksheet (at +cell+).
+ *
+ *  For available +opts+ see #insert_image.
+ */
 VALUE
 worksheet_insert_chart_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row;
@@ -517,17 +603,26 @@ worksheet_insert_chart_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
-#undef SET_IMG_OPT
-
+/*  call-seq:
+ *     ws.merge_range(range, value = "", format = nil) -> self
+ *     ws.merge_range(cell_from, cell_to, value = "", format = nil) -> self
+ *     ws.merge_range(row_from, col_from, row_to, col_to, value = "", format = nil) -> self
+ *
+ *  Merges +range+, setting string +value+ with +format+.
+ *
+ *     ws.merge_range('A1:D5')
+ *     ws.merge_range('A1', 'D5', 'Merged cells')
+ *     ws.merge_range(0, 0, 4, 3)
+ */
 VALUE
 worksheet_merge_range_(int argc, VALUE *argv, VALUE self) {
-  char *str;
+  char *str = "";
   lxw_format *format = NULL;
   lxw_col_t col1, col2;
   lxw_row_t row1, row2;
   VALUE workbook = rb_iv_get(self, "@workbook");
 
-  rb_check_arity(argc, 2, 6);
+  rb_check_arity(argc, 1, 6);
   int larg = extract_range(argc, argv, &row1, &col1, &row2, &col2);
 
   if (larg < argc) {
@@ -547,6 +642,17 @@ worksheet_merge_range_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/*  call-seq:
+ *     ws.autofilter(range) -> self
+ *     ws.autofilter(cell_from, cell_to) -> self
+ *     ws.autofilter(row_from, col_from, row_to, col_to) -> self
+ *
+ *  Applies autofilter to the +range+.
+ *
+ *     ws.autofilter('A1:D5')
+ *     ws.autofilter('A1', 'D5')
+ *     ws.autofilter(0, 0, 4, 3)
+ */
 VALUE
 worksheet_autofilter_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row_from, row_to;
@@ -561,12 +667,22 @@ worksheet_autofilter_(int argc, VALUE *argv, VALUE self) {
   worksheet_autofilter(ptr->worksheet, row_from, col_from, row_to, col_to);
   return self;
 }
+
+/*  call-seq: ws.activate -> self
+ *
+ *  Set the worksheet to be active on opening the workbook.
+ */
 VALUE worksheet_activate_(VALUE self) {
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
   worksheet_activate(ptr->worksheet);
   return self;
 }
+
+/*  call-seq: ws.select -> self
+ *
+ *  Set the worksheet to be selected on openong the workbook.
+ */
 VALUE worksheet_select_(VALUE self) {
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
@@ -574,6 +690,10 @@ VALUE worksheet_select_(VALUE self) {
   return self;
 }
 
+/*  call-seq: ws.hide -> self
+ *
+ *  Hide the worksheet.
+ */
 VALUE
 worksheet_hide_(VALUE self) {
   struct worksheet *ptr;
@@ -582,6 +702,11 @@ worksheet_hide_(VALUE self) {
   return self;
 }
 
+/*  call-seq: ws.set_fitst_sheet -> self
+ *
+ *  Set the sheet to be the first visible in the sheets list (which is placed
+ *  under the work area in Excel).
+ */
 VALUE
 worksheet_set_first_sheet_(VALUE self) {
   struct worksheet *ptr;
@@ -589,31 +714,47 @@ worksheet_set_first_sheet_(VALUE self) {
   worksheet_set_first_sheet(ptr->worksheet);
   return self;
 }
+
+/*  call-seq:
+ *     ws.freeze_panes(cell) -> self
+ *     ws.freeze_panes(row, col) -> self
+ *
+ *  Divides the worksheet into horizontal or vertical panes and freezes them.
+ *
+ *  The specified +cell+ is the top left in the right bottom pane.
+ *
+ *  In order to freeze only rows/cols pass 0 as +row+ or +col+.
+ *
+ *  Advanced usage (with 2nd cell and type) is not documented yet.
+ */
 VALUE
 worksheet_freeze_panes_(int argc, VALUE *argv, VALUE self) {
-  rb_check_arity(argc, 2, 5);
-  VALUE row = argv[0];
-  VALUE col = argv[1];
+  lxw_row_t row, row2;
+  lxw_col_t col, col2;
+  uint8_t type = 0;
+  rb_check_arity(argc, 1, 5);
+  int larg = extract_cell(argc, argv, &row, &col);
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
-  if (argc == 2) {
-    worksheet_freeze_panes(ptr->worksheet, NUM2INT(row), value_to_col(col));
+  if (larg >= argc) {
+    worksheet_freeze_panes(ptr->worksheet, row, col);
   } else {
-    VALUE row2 = row;
-    VALUE col2 = col;
-    uint8_t type = 0;
-    if (argc > 2)
-      row2 = argv[2];
-    if (argc > 3)
-      col2 = argv[3];
-    if (argc > 4)
-      type = NUM2INT(argv[4]);
-    worksheet_freeze_panes_opt(ptr->worksheet, NUM2INT(row), value_to_col(col),
-                               NUM2INT(row2), value_to_col(col2), type);
+    larg += extract_cell(argc - larg, argv + larg, &row2, &col2);
+    if (larg < argc) {
+      type = NUM2INT(argv[larg]);
+    }
+    worksheet_freeze_panes_opt(ptr->worksheet, row, col, row2, col2, type);
   }
   return self;
 }
 
+/*  call-seq: ws.split_panes(vertical, horizontal) -> self
+ *
+ *  Divides the worksheet int vertical and horizontal panes with respective
+ *  positions from parameters (Numeric).
+ *
+ *  If only one split is desired pass 0 for other.
+ */
 VALUE
 worksheet_split_panes_(VALUE self, VALUE vertical, VALUE horizontal) {
   struct worksheet *ptr;
@@ -622,6 +763,17 @@ worksheet_split_panes_(VALUE self, VALUE vertical, VALUE horizontal) {
   return self;
 }
 
+/*  call-seq:
+ *     ws.set_selection(range) -> self
+ *     ws.set_selection(cell_from, cell_to) -> self
+ *     ws.set_selection(row_from, col_from, row_to, col_to) -> self
+ *
+ *  Selects the specified +range+ on the worksheet.
+ *
+ *     ws.set_selection('A1:G5')
+ *     ws.set_selection('A1', 'G5')
+ *     ws.set_selection(0, 0, 4, 6)
+ */
 VALUE
 worksheet_set_selection_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row_from, row_to;
@@ -637,6 +789,10 @@ worksheet_set_selection_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/*  call-seq: ws.set_landscape -> self
+ *
+ *  Sets print orientation of the worksheet to landscape.
+ */
 VALUE
 worksheet_set_landscape_(VALUE self) {
   struct worksheet *ptr;
@@ -645,6 +801,10 @@ worksheet_set_landscape_(VALUE self) {
   return self;
 }
 
+/*  call-seq: ws.set_portrait -> self
+ *
+ *  Sets print orientation of the worksheet to portrait.
+ */
 VALUE
 worksheet_set_portrait_(VALUE self) {
   struct worksheet *ptr;
@@ -653,6 +813,10 @@ worksheet_set_portrait_(VALUE self) {
   return self;
 }
 
+/*  call-seq: ws.set_page_view -> self
+ *
+ *  Sets worksheet displa mode to "Page View/Layout".
+ */
 VALUE
 worksheet_set_page_view_(VALUE self) {
   struct worksheet *ptr;
@@ -661,6 +825,10 @@ worksheet_set_page_view_(VALUE self) {
   return self;
 }
 
+/*  call-seq: ws.paper=(type) -> type
+ *
+ *  Sets the paper +type+ for printing. See {libxlsxwriter doc}[https://libxlsxwriter.github.io/worksheet_8h.html#a9f8af12017797b10c5ee68e04149032f] for options.
+ */
 VALUE
 worksheet_set_paper_(VALUE self, VALUE paper_type) {
   struct worksheet *ptr;
@@ -669,6 +837,7 @@ worksheet_set_paper_(VALUE self, VALUE paper_type) {
   return self;
 }
 
+/* Sets the worksheet margins (Numeric) for the printed page. */
 VALUE
 worksheet_set_margins_(VALUE self, VALUE left, VALUE right, VALUE top, VALUE bottom) {
   struct worksheet *ptr;
@@ -677,6 +846,13 @@ worksheet_set_margins_(VALUE self, VALUE left, VALUE right, VALUE top, VALUE bot
   return self;
 }
 
+/*  call-seq: ws.set_header(text, opts) -> self
+ *
+ *  See {libxlsxwriter doc}[https://libxlsxwriter.github.io/worksheet_8h.html#a4070c24ed5107f33e94f30a1bf865ba9]
+ *  for the +text+ control characters.
+ *
+ *  Currently the only supported option is +:margin+ (Numeric).
+ */
 VALUE
 worksheet_set_header_(VALUE self, VALUE val, VALUE opts) {
   const char *str = StringValueCStr(val);
@@ -699,6 +875,10 @@ worksheet_set_header_(VALUE self, VALUE val, VALUE opts) {
   return self;
 }
 
+/*  call-seq: ws.set_footer(text, opts)
+ *
+ *  See #set_header for params description.
+ */
 VALUE
 worksheet_set_footer_(VALUE self, VALUE val, VALUE opts) {
   const char *str = StringValueCStr(val);
@@ -721,6 +901,12 @@ worksheet_set_footer_(VALUE self, VALUE val, VALUE opts) {
   return self;
 }
 
+/*  call-seq: wb.h_pagebreaks=(breaks) -> breaks
+ *
+ *  Adds horizontal page +breaks+ to the worksheet.
+ *
+ *     wb.h_pagebreaks = [20, 40, 80]
+ */
 VALUE
 worksheet_set_h_pagebreaks_(VALUE self, VALUE val) {
   const size_t len = RARRAY_LEN(val);
@@ -735,6 +921,12 @@ worksheet_set_h_pagebreaks_(VALUE self, VALUE val) {
   return val;
 }
 
+/*  call-seq: wb.h_pagebreaks=(breaks) -> breaks
+ *
+ *  Adds vertical page +breaks+ to the worksheet.
+ *
+ *     wb.v_pagebreaks = [20, 40, 80]
+ */
 VALUE
 worksheet_set_v_pagebreaks_(VALUE self, VALUE val) {
   const size_t len = RARRAY_LEN(val);
@@ -749,6 +941,7 @@ worksheet_set_v_pagebreaks_(VALUE self, VALUE val) {
   return val;
 }
 
+/* Changes the default print direction */
 VALUE
 worksheet_print_across_(VALUE self) {
   struct worksheet *ptr;
@@ -757,6 +950,10 @@ worksheet_print_across_(VALUE self) {
   return self;
 }
 
+/*  call-seq: ws.zoom=(zoom) -> zoom
+ *
+ *  Sets the worksheet zoom factor in the range 10 <= +zoom+ <= 400.
+ */
 VALUE
 worksheet_set_zoom_(VALUE self, VALUE val) {
   struct worksheet *ptr;
@@ -765,6 +962,12 @@ worksheet_set_zoom_(VALUE self, VALUE val) {
   return self;
 }
 
+/*  call-seq: ws.gridlines=(option) -> option
+ *
+ *  Display or hide screen and print gridlines using one of the values
+ *  XlsxWriter::Worksheet::{GRIDLINES_HIDE_ALL, GRIDLINES_SHOW_SCREEN,
+ *  GRIDLINES_SHOW_PRINT, GRIDLINES_SHOW_ALL}.
+ */
 VALUE
 worksheet_gridlines_(VALUE self, VALUE value) {
   struct worksheet *ptr;
@@ -775,6 +978,7 @@ worksheet_gridlines_(VALUE self, VALUE value) {
   return value;
 }
 
+/* Center the worksheet data horizontally between the margins on the printed page */
 VALUE
 worksheet_center_horizontally_(VALUE self){
   struct worksheet *ptr;
@@ -783,6 +987,7 @@ worksheet_center_horizontally_(VALUE self){
   return self;
 }
 
+/* Center the worksheet data vertically between the margins on the printed page */
 VALUE
 worksheet_center_vertically_(VALUE self) {
     struct worksheet *ptr;
@@ -791,6 +996,7 @@ worksheet_center_vertically_(VALUE self) {
     return self;
 }
 
+/* Print rows and column header (wich is disabled by default). */
 VALUE
 worksheet_print_row_col_headers_(VALUE self) {
   struct worksheet *ptr;
@@ -799,6 +1005,10 @@ worksheet_print_row_col_headers_(VALUE self) {
   return self;
 }
 
+/*  call-seq: ws.repeat_rows(row_from, row_to)
+ *
+ *  Sets rows to be repeatedly printed out on all pages.
+ */
 VALUE
 worksheet_repeat_rows_(VALUE self, VALUE row_from, VALUE row_to) {
   struct worksheet *ptr;
@@ -807,6 +1017,10 @@ worksheet_repeat_rows_(VALUE self, VALUE row_from, VALUE row_to) {
   return self;
 }
 
+/*  call-seq: ws.repeat_columns(col_from, col_to)
+ *
+ *  Sets columns to be repeatedly printed out on all pages.
+ */
 VALUE
 worksheet_repeat_columns_(VALUE self, VALUE col_from, VALUE col_to) {
   struct worksheet *ptr;
@@ -815,6 +1029,13 @@ worksheet_repeat_columns_(VALUE self, VALUE col_from, VALUE col_to) {
   return self;
 }
 
+/*  call-seq:
+ *     ws.print_area(range)
+ *     ws.print_area(cell_from, cell_to)
+ *     ws.print_area(row_from, col_from, row_to, col_to)
+ *
+ *  Specifies area of the worksheet to be printed.
+ */
 VALUE
 worksheet_print_area_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row_from, row_to;
@@ -830,6 +1051,11 @@ worksheet_print_area_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/*  call-seq: ws.fit_to_pages(width, height) -> self
+ *
+ *  Fits the printed area to a specific number of pages both vertically and
+ *  horizontally.
+ */
 VALUE
 worksheet_fit_to_pages_(VALUE self, VALUE width, VALUE height) {
   struct worksheet *ptr;
@@ -838,6 +1064,10 @@ worksheet_fit_to_pages_(VALUE self, VALUE width, VALUE height) {
   return self;
 }
 
+/*  call-seq: ws.start_page=(page) -> page
+ *
+ *  Set the number of the first printed page.
+ */
 VALUE
 worksheet_set_start_page_(VALUE self, VALUE start_page) {
   struct worksheet *ptr;
@@ -846,6 +1076,10 @@ worksheet_set_start_page_(VALUE self, VALUE start_page) {
   return start_page;
 }
 
+/*  call-seq: ws.print_scale=(scale) -> scale
+ *
+ *  Sets the +scale+ factor of the printed page (10 <= +scale+ <= 400).
+ */
 VALUE
 worksheet_set_print_scale_(VALUE self, VALUE scale) {
   struct worksheet *ptr;
@@ -854,6 +1088,7 @@ worksheet_set_print_scale_(VALUE self, VALUE scale) {
   return scale;
 }
 
+/* Sets text direction to rtl (e.g. for worksheets on Hebrew or Arabic). */
 VALUE
 worksheet_right_to_left_(VALUE self) {
   struct worksheet *ptr;
@@ -862,6 +1097,7 @@ worksheet_right_to_left_(VALUE self) {
   return self;
 }
 
+/* Hides all zero values. */
 VALUE
 worksheet_hide_zero_(VALUE self) {
   struct worksheet *ptr;
@@ -870,6 +1106,12 @@ worksheet_hide_zero_(VALUE self) {
   return self;
 }
 
+/*  call-seq: ws.tab_color=(color) -> color
+ *
+ *  Set the tab color (from RGB integer).
+ *
+ *     ws.tab_color = 0xF0F0F0
+ */
 VALUE
 worksheet_set_tab_color_(VALUE self, VALUE color) {
   struct worksheet *ptr;
@@ -878,13 +1120,20 @@ worksheet_set_tab_color_(VALUE self, VALUE color) {
   return color;
 }
 
+/*  call-seq: ws.protect(password[, opts]) -> self
+ *
+ *  Protects the worksheet elements from modification.
+ *  See {libxlsxwriter doc}[https://libxlsxwriter.github.io/worksheet_8h.html#a1b49e135d4debcdb25941f2f40f04cb0]
+ *  for options.
+ */
 VALUE
 worksheet_protect_(int argc, VALUE *argv, VALUE self) {
   rb_check_arity(argc, 0, 2);
   uint8_t with_options = '\0';
   VALUE val;
   VALUE opts = Qnil;
-  lxw_protection options;
+  // All options are off by default
+  lxw_protection options = {};
   const char *password = NULL;
   if (argc > 0 && !NIL_P(argv[0])) {
     switch (TYPE(argv[0])) {
@@ -906,9 +1155,6 @@ worksheet_protect_(int argc, VALUE *argv, VALUE self) {
       rb_raise(rb_eArgError, "Expected a Hash, but got %"PRIsVALUE, rb_obj_class(argv[1]));
     }
   }
-
-  // All options are off by default
-  memset(&options, 0, sizeof options);
 
   if (!NIL_P(opts)) {
 #define PR_OPT(field) {                                    \
@@ -945,6 +1191,10 @@ worksheet_protect_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/*  call-seq: ws.set_default_row(height, hide_unuser_rows) -> self
+ *
+ *  Sets the default row properties for the worksheet.
+ */
 VALUE
 worksheet_set_default_row_(VALUE self, VALUE height, VALUE hide_unused_rows) {
   struct worksheet *ptr;
@@ -954,14 +1204,21 @@ worksheet_set_default_row_(VALUE self, VALUE height, VALUE hide_unused_rows) {
   return self;
 }
 
-
+/*  call-seq: ws.vertical_dpi -> int
+ *
+ *  Returns the vertical dpi.
+ */
 VALUE
 worksheet_get_vertical_dpi_(VALUE self) {
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
-  return ptr->worksheet->vertical_dpi;
+  return INT2NUM(ptr->worksheet->vertical_dpi);
 }
 
+/*  call-seq: ws.vertical_dpi=(dpi) -> dpi
+ *
+ *  Sets the vertical dpi.
+ */
 VALUE
 worksheet_set_vertical_dpi_(VALUE self, VALUE val) {
   struct worksheet *ptr;
@@ -1084,3 +1341,75 @@ val_to_lxw_image_options(VALUE opts, char *with_options) {
   return options;
 }
 #undef SET_IMG_OPT
+
+
+void
+init_xlsxwriter_worksheet() {
+  /* Xlsx worksheet */
+  cWorksheet = rb_define_class_under(mXlsxWriter, "Worksheet", rb_cObject);
+
+  rb_define_alloc_func(cWorksheet, worksheet_alloc);
+  rb_define_method(cWorksheet, "initialize", worksheet_init, -1);
+  rb_define_method(cWorksheet, "free", worksheet_release, 0);
+  rb_define_method(cWorksheet, "write_string", worksheet_write_string_, -1);
+  rb_define_method(cWorksheet, "write_number", worksheet_write_number_, -1);
+  rb_define_method(cWorksheet, "write_formula", worksheet_write_formula_, -1);
+  rb_define_method(cWorksheet, "write_array_formula", worksheet_write_array_formula_, -1);
+  rb_define_method(cWorksheet, "write_datetime", worksheet_write_datetime_, -1);
+  rb_define_method(cWorksheet, "write_url", worksheet_write_url_, -1);
+  rb_define_method(cWorksheet, "write_boolean", worksheet_write_boolean_, -1);
+  rb_define_method(cWorksheet, "write_blank", worksheet_write_blank_, -1);
+  rb_define_method(cWorksheet, "write_formula_num", worksheet_write_formula_num_, -1);
+  rb_define_method(cWorksheet, "set_row", worksheet_set_row_, 2);
+  rb_define_method(cWorksheet, "set_column", worksheet_set_column_, 3);
+  rb_define_method(cWorksheet, "insert_image", worksheet_insert_image_, -1);
+  rb_define_method(cWorksheet, "insert_chart", worksheet_insert_chart_, -1);
+  rb_define_method(cWorksheet, "merge_range", worksheet_merge_range_, -1);
+  rb_define_method(cWorksheet, "autofilter", worksheet_autofilter_, -1);
+  rb_define_method(cWorksheet, "activate", worksheet_activate_, 0);
+  rb_define_method(cWorksheet, "select", worksheet_select_, 0);
+  rb_define_method(cWorksheet, "hide", worksheet_hide_, 0);
+  rb_define_method(cWorksheet, "set_first_sheet", worksheet_set_first_sheet_, 0);
+  rb_define_method(cWorksheet, "freeze_panes", worksheet_freeze_panes_, -1);
+  rb_define_method(cWorksheet, "split_panes", worksheet_split_panes_, 2);
+  rb_define_method(cWorksheet, "set_selection", worksheet_set_selection_, -1);
+  rb_define_method(cWorksheet, "set_landscape", worksheet_set_landscape_, 0);
+  rb_define_method(cWorksheet, "set_portrait", worksheet_set_portrait_, 0);
+  rb_define_method(cWorksheet, "set_page_view", worksheet_set_page_view_, 0);
+  rb_define_method(cWorksheet, "paper=", worksheet_set_paper_, 1);
+  rb_define_method(cWorksheet, "set_margins", worksheet_set_margins_, 4);
+  rb_define_method(cWorksheet, "set_header", worksheet_set_header_, 1);
+  rb_define_method(cWorksheet, "set_footer", worksheet_set_footer_, 1);
+  rb_define_method(cWorksheet, "h_pagebreaks=", worksheet_set_h_pagebreaks_, 1);
+  rb_define_method(cWorksheet, "v_pagebreaks=", worksheet_set_v_pagebreaks_, 1);
+  rb_define_method(cWorksheet, "print_across", worksheet_print_across_, 0);
+  rb_define_method(cWorksheet, "zoom=", worksheet_set_zoom_, 1);
+  rb_define_method(cWorksheet, "gridlines=", worksheet_gridlines_, 1);
+  rb_define_method(cWorksheet, "center_horizontally", worksheet_center_horizontally_, 0);
+  rb_define_method(cWorksheet, "center_vertically", worksheet_center_vertically_, 0);
+  rb_define_method(cWorksheet, "print_row_col_headers", worksheet_print_row_col_headers_, 0);
+  rb_define_method(cWorksheet, "repeat_rows", worksheet_repeat_rows_, 2);
+  rb_define_method(cWorksheet, "repeat_columns", worksheet_repeat_columns_, 2);
+  rb_define_method(cWorksheet, "print_area", worksheet_print_area_, -1);
+  rb_define_method(cWorksheet, "fit_to_pages", worksheet_fit_to_pages_, 2);
+  rb_define_method(cWorksheet, "start_page=", worksheet_set_start_page_, 1);
+  rb_define_method(cWorksheet, "print_scale=", worksheet_set_print_scale_, 1);
+  rb_define_method(cWorksheet, "right_to_left", worksheet_right_to_left_, 0);
+  rb_define_method(cWorksheet, "hide_zero", worksheet_hide_zero_, 0);
+  rb_define_method(cWorksheet, "tab_color=", worksheet_set_tab_color_, 1);
+  rb_define_method(cWorksheet, "protect", worksheet_protect_, -1);
+  rb_define_method(cWorksheet, "set_default_row", worksheet_set_default_row_, 2);
+
+  rb_define_method(cWorksheet, "vertical_dpi", worksheet_get_vertical_dpi_, 0);
+  rb_define_method(cWorksheet, "vertical_dpi=", worksheet_set_vertical_dpi_, 1);
+
+#define MAP_LXW_WH_CONST(name, val_name) rb_define_const(cWorksheet, #name, INT2NUM(LXW_##val_name))
+  MAP_LXW_WH_CONST(DEF_COL_WIDTH, DEF_COL_WIDTH);
+  MAP_LXW_WH_CONST(DEF_ROW_HEIGHT, DEF_ROW_HEIGHT);
+
+  MAP_LXW_WH_CONST(GRIDLINES_HIDE_ALL, HIDE_ALL_GRIDLINES);
+  MAP_LXW_WH_CONST(GRIDLINES_SHOW_SCREEN, SHOW_SCREEN_GRIDLINES);
+  MAP_LXW_WH_CONST(GRIDLINES_SHOW_PRINT, SHOW_PRINT_GRIDLINES);
+  MAP_LXW_WH_CONST(GRIDLINES_SHOW_ALL, SHOW_ALL_GRIDLINES);
+#undef MAP_LXW_WH_CONST
+}

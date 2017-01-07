@@ -1,7 +1,16 @@
 #include <string.h>
 #include "xlsxwriter.h"
+#include "chart.h"
 #include "format.h"
 #include "workbook.h"
+#include "workbook_properties.h"
+#include "worksheet.h"
+
+VALUE cWorkbook;
+
+void workbook_free(void *p);
+VALUE workbook_release(VALUE self);
+
 
 VALUE
 workbook_alloc(VALUE klass)
@@ -19,6 +28,20 @@ workbook_alloc(VALUE klass)
   return obj;
 }
 
+/*  call-seq:
+ *     XlsxWriter::Workbook.new(path, constant_memory: false, tmpdir: nil) -> workbook
+ *     XlsxWriter::Workbook.new(path, constant_memory: false, tmpdir: nil) { |wb| block } -> nil
+ *     XlsxWriter::Workbook.open(path, constant_memory: false, tmpdir: nil) { |wb| block } -> nil
+ *
+ *  Creates a new Xlsx workbook in file +path+ and returns a new Workbook object.
+ *
+ *  If +constant_memory+ is set to true workbook data is stored in temporary files
+ *  in +tmpdir+, considerably reducing memory consumption for large documents.
+ *
+ *    XlsxWriter::Workbook.open('/tmp/test.xlsx', constant_memory: true) do |wb|
+ *      # ... populate the workbook with data ...
+ *    end
+ */
 VALUE
 workbook_new_(int argc, VALUE *argv, VALUE self) {
   VALUE workbook = rb_call_super(argc, argv);
@@ -30,6 +53,7 @@ workbook_new_(int argc, VALUE *argv, VALUE self) {
   return workbook;
 }
 
+/* :nodoc: */
 VALUE
 workbook_init(int argc, VALUE *argv, VALUE self) {
   struct workbook *ptr;
@@ -67,6 +91,18 @@ workbook_init(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/*  call-seq:
+ *     wb.close -> nil
+ *
+ *  Dumps the workbook content to the file and closes the worksheet.
+ *  To be used only for workbooks opened with <code>XlsxWriter::Workbook.new</code>
+ *  without block.
+ *
+ *  No methods should be called on the worksheet after it is colsed.
+ *
+ *    wb = XlsxWriter::Workbook.new('/tmp/test.xlsx')
+ *    wb.close
+ */
 VALUE
 workbook_release(VALUE self) {
   struct workbook *ptr;
@@ -119,20 +155,27 @@ workbook_free(void *p) {
   }
 }
 
+/* call-seq:
+ *    wb.add_worksheet([name]) -> ws
+ *    wb.add_worksheet([name]) { |ws| block } -> obj
+ *
+ * Adds a worksheet named +name+ to the workbook.
+ *
+ * If a block is passed, the last statement is returned.
+ *
+ *    wb.add_worksheet('Sheet1') do |ws|
+ *      ws.add_row(['test'])
+ *    end
+ */
 VALUE
 workbook_add_worksheet_(int argc, VALUE *argv, VALUE self) {
   VALUE worksheet = Qnil;
 
-  if (argc > 1) {
-    rb_raise(rb_eArgError, "wrong number of arguments");
-    return Qnil;
-  }
+  rb_check_arity(argc, 0, 1);
 
   struct workbook *ptr;
   Data_Get_Struct(self, struct workbook, ptr);
   if (ptr->workbook) {
-    VALUE mXlsxWriter = rb_const_get(rb_cObject, rb_intern("XlsxWriter"));
-    VALUE cWorksheet = rb_const_get(mXlsxWriter, rb_intern("Worksheet"));
     worksheet = rb_funcall(cWorksheet, rb_intern("new"), argc + 1, self, argv[0]);
   }
 
@@ -144,6 +187,37 @@ workbook_add_worksheet_(int argc, VALUE *argv, VALUE self) {
   return worksheet;
 }
 
+/* call-seq:
+ *    wb.add_format(key, definition) -> wb
+ *
+ * Adds a format identified as +key+ with parameters set from +definition+ to the
+ * workbook.
+ *
+ * +definition+ should be an object and may contain the following options:
+ *
+ * :font_name:: Font family to be used to display the cell content (like Arial, Dejavu or Helvetica).
+ * :font_size:: Font size.
+ * :font_color:: Text color.
+ * :bold, :italic, underline :: Bold, italic, underlined text.
+ * :font_strikeout:: Striked out text.
+ * :font_script:: Superscript (XlsxWrtiter::Format::FONT_SUPERSCRIPT) or subscript (XlsxWriter::Format::FONT_SUBSCRIPT).
+ * :num_format:: Defines numerical format with mask, like <code>'d mmm yyyy'</code>
+ *               or <code>'#,##0.00'</code>.
+ * :num_format_index:: Defines numerical format from special {pre-defined set}[https://libxlsxwriter.github.io/format_8h.html#a688aa42bcc703d17e125d9a34c721872].
+ * :unlocked:: Allows modifications of protected cells.
+ * :hidden::
+ * :align, :vertical_align::
+ * :text_wrap::
+ * :rotation::
+ * :indent::
+ * :shrink::
+ * :pattern::
+ * :bg_color::
+ * :fg_color::
+ * :border::
+ * :bottom, :top, :left, :right::
+ * :border_color, :bottom_color, :top_color, :left_color, :right_color::
+ */
 VALUE
 workbook_add_format_(VALUE self, VALUE key, VALUE opts) {
   struct workbook *ptr;
@@ -171,6 +245,23 @@ workbook_add_format_(VALUE self, VALUE key, VALUE opts) {
   return self;
 }
 
+/*  call-seq:
+ *     wb.add_chart(type) { |chart| block } -> obj
+ *     wb.add_chert(type) -> chart
+ *
+ *  Adds a chart of type +type+ to the workbook.
+ *
+ *  +type+ is expected to be one of <code>XlsxWriter::Workbook::Chart::{NONE, AREA,
+ *  AREA_STACKED, AREA_STACKED_PERCENT, BAR, BAR_STACKED, BAR_STACKED_PERCENT,
+ *  COLUMN, COLUMN_STACKED, COLUMN_STACKED_PERCENT, DOUGHNUT, LINE, PIE, SCATTER,
+ *  SCATTER_STRAIGHT, SCATTER_STRAIGHT_WOTH_MARKERS, SCATTER_SMOOTH,
+ *  SCATTER_SMOOTH_WITH_MARKERS, RADAR, RADAR_WITH_MARKERS, RADAR_FILLED}</code>.
+ *
+ *    wb.add_chart(XlsxWriter::Workbook::Chart::PIE) do |chart|
+ *      chart.add_series 'A1:A10', 'B1:B10'
+ *      ws.insert_chart('D2', chart)
+ *    end
+ */
 VALUE
 workbook_add_chart_(VALUE self, VALUE type) {
   VALUE chart = rb_funcall(cChart, rb_intern("new"), 2, self, type);
@@ -181,6 +272,7 @@ workbook_add_chart_(VALUE self, VALUE type) {
   return chart;
 }
 
+/* :nodoc: */
 VALUE
 workbook_set_default_xf_indices_(VALUE self) {
   struct workbook *ptr;
@@ -189,6 +281,12 @@ workbook_set_default_xf_indices_(VALUE self) {
   return self;
 }
 
+/*  call-seq: wb.properties -> wb_properties
+ *
+ *  Returns worbook properties accessor object.
+ *
+ *    wb.properties.title = 'My awesome sheet'
+ */
 VALUE
 workbook_properties_(VALUE self) {
   VALUE props = rb_obj_alloc(cWorkbookProperties);
@@ -196,6 +294,12 @@ workbook_properties_(VALUE self) {
   return props;
 }
 
+/*  call-seq: wb.define_name(name, formula) -> wb
+ *
+ *  Create a defined +name+ in the workbook to use as a variable defined in +formula+.
+ *
+ *    wb.define_name 'Sales', '=Sheet1!$G$1:$H$10'
+ */
 VALUE
 workbook_define_name_(VALUE self, VALUE name, VALUE formula) {
   struct workbook *ptr;
@@ -204,6 +308,11 @@ workbook_define_name_(VALUE self, VALUE name, VALUE formula) {
   return self;
 }
 
+/*  call-seq: wb.validate_worksheet_name(name) -> true
+ *
+ *  Validates a worksheet +name+. Returns +true+ or raises an exception (not
+ *  implemented yet).
+ */
 VALUE
 workbook_validate_worksheet_name_(VALUE self, VALUE name) {
   struct workbook *ptr;
@@ -254,4 +363,34 @@ value_to_lxw_datetime(VALUE val) {
 void
 handle_lxw_error(lxw_error err) {
   return;
+}
+
+
+/*  Document-class: XlsxWriter::Workbook
+ *
+ *  +Workbook+ is the main class exposed by +XlsxWriter+. It represents the
+ *  workbook (.xlsx) file.
+ */
+void
+init_xlsxwriter_workbook() {
+  cWorkbook = rb_define_class_under(mXlsxWriter, "Workbook", rb_cObject);
+
+  rb_define_alloc_func(cWorkbook, workbook_alloc);
+  rb_define_singleton_method(cWorkbook, "new", workbook_new_, -1);
+  rb_define_alias(rb_singleton_class(cWorkbook), "open", "new");
+  rb_define_method(cWorkbook, "initialize", workbook_init, -1);
+  rb_define_method(cWorkbook, "close", workbook_release, 0);
+  rb_define_method(cWorkbook, "add_worksheet", workbook_add_worksheet_, -1);
+  rb_define_method(cWorkbook, "add_format", workbook_add_format_, 2);
+  rb_define_method(cWorkbook, "add_chart", workbook_add_chart_, 1);
+  rb_define_method(cWorkbook, "set_default_xf_indices", workbook_set_default_xf_indices_, 0);
+  rb_define_method(cWorkbook, "properties", workbook_properties_, 0);
+  rb_define_method(cWorkbook, "define_name", workbook_define_name_, 2);
+  rb_define_method(cWorkbook, "validate_worksheet_name", workbook_validate_worksheet_name_, 1);
+
+  /*
+   * This attribute contains effective font widths used for automatic column
+   * widths of workbook columns.
+   */
+  rb_define_attr(cWorkbook, "font_sizes", 1, 0);
 }
