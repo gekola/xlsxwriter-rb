@@ -11,7 +11,10 @@ class XlsxWriter::Worksheet
   # In the latter case they are applied to all cells in the +row+.
   #
   # +height+ is a Numeric that specifies the row height.
-  def add_row(row, style: nil, height: nil, types: nil)
+  #
+  # If +skip_empty+ is set to +true+ empty cells are not added to the sheet.
+  # Otherwise they are added with type +:blank+.
+  def add_row(row, style: nil, height: nil, types: nil, skip_empty: false)
     row_idx = @current_row ||= 0
     @current_row += 1
 
@@ -36,6 +39,8 @@ class XlsxWriter::Worksheet
         write_boolean(row_idx, idx, value, cell_style)
       when :blank
         write_blank(row_idx, idx, cell_style)
+      when :skip, :empty
+        # write nothing
       when nil
         case value
         when Numeric
@@ -43,7 +48,7 @@ class XlsxWriter::Worksheet
         when TrueClass, FalseClass
           write_boolean(row_idx, idx, value, cell_style)
         when '', nil
-          write_blank(row_idx, idx, cell_style)
+          write_blank(row_idx, idx, cell_style) unless skip_empty
         when /\A=/
           write_formula(row_idx, idx, value, cell_style)
         else
@@ -59,11 +64,11 @@ class XlsxWriter::Worksheet
       else
         raise ArgumentError, "Unknown cell type #{cell_type}."
       end
-
-      set_row(row_idx, height: height) if height
-
-      nil
     end
+
+    set_row(row_idx, height: height) if height
+
+    nil
   end
 
   # Apply cols automatic widths calculated by #add_row.
