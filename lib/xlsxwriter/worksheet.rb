@@ -84,6 +84,7 @@ class XlsxWriter::Worksheet
   def update_col_auto_width(idx, val, format)
     font_scale = (@workbook.font_sizes[format] || 11) / 10.0
     width = (val.count(THIN_CHARS) + 3) * font_scale
+    width = 255 if width > 255 # Max xlsx column width is 255 characters
     @col_auto_widths[idx] = [@col_auto_widths[idx], width].compact.max
   end
 end

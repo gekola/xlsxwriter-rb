@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.files = ['Rakefile',
              *Dir['{lib,test}/**/*.rb'],
              *Dir['ext/xlsxwriter/*.{c,h,rb}'],
-             'ext/xlsxwriter/libxlsxwriter/LICENSE.txt',
+             'ext/xlsxwriter/libxlsxwriter/License.txt',
              'ext/xlsxwriter/libxlsxwriter/Makefile',
              'ext/xlsxwriter/libxlsxwriter/lib/.gitignore',
              *Dir['ext/xlsxwriter/libxlsxwriter/{src,third_party}/**/Makefile'],
