@@ -1,17 +1,17 @@
 PATH
   remote: .
   specs:
-    xlsxwriter (0.0.4)
+    xlsxwriter (0.0.5)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    power_assert (1.1.0)
-    rake (12.1.0)
+    power_assert (1.1.1)
+    rake (12.3.1)
     rake-compiler (1.0.4)
       rake
     rubyzip (1.2.1)
-    test-unit (3.2.6)
+    test-unit (3.2.8)
       power_assert
 
 PLATFORMS
@@ -24,4 +24,4 @@ DEPENDENCIES
   xlsxwriter!
 
 BUNDLED WITH
-   1.15.4
+   1.16.2

@@ -67,6 +67,8 @@ worksheet_init(int argc, VALUE *argv, VALUE self) {
 
   Data_Get_Struct(argv[0], struct workbook, wb_ptr);
   ptr->worksheet = workbook_add_worksheet(wb_ptr->workbook, name);
+  if (!ptr->worksheet)
+    rb_raise(rb_eRuntimeError, "worksheet was not created");
   return self;
 }
 
