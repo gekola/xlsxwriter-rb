@@ -13,8 +13,7 @@ VALUE workbook_release(VALUE self);
 
 
 VALUE
-workbook_alloc(VALUE klass)
-{
+workbook_alloc(VALUE klass) {
   VALUE obj;
   struct workbook *ptr;
 
