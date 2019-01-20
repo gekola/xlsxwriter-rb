@@ -307,17 +307,20 @@ workbook_define_name_(VALUE self, VALUE name, VALUE formula) {
   return self;
 }
 
-/*  call-seq: wb.validate_worksheet_name(name) -> true
+/*  call-seq:
+ *    wb.validate_sheet_name(name) -> true
+ *    wb.validate_worksheet_name(name) -> true
  *
  *  Validates a worksheet +name+. Returns +true+ or raises an exception (not
  *  implemented yet).
+ *
  */
 VALUE
-workbook_validate_worksheet_name_(VALUE self, VALUE name) {
+workbook_validate_sheet_name_(VALUE self, VALUE name) {
   struct workbook *ptr;
   lxw_error err;
   Data_Get_Struct(self, struct workbook, ptr);
-  err = workbook_validate_worksheet_name(ptr->workbook, StringValueCStr(name));
+  err = workbook_validate_sheet_name(ptr->workbook, StringValueCStr(name));
   handle_lxw_error(err);
   return Qtrue;
 }
@@ -385,7 +388,8 @@ init_xlsxwriter_workbook() {
   rb_define_method(cWorkbook, "set_default_xf_indices", workbook_set_default_xf_indices_, 0);
   rb_define_method(cWorkbook, "properties", workbook_properties_, 0);
   rb_define_method(cWorkbook, "define_name", workbook_define_name_, 2);
-  rb_define_method(cWorkbook, "validate_worksheet_name", workbook_validate_worksheet_name_, 1);
+  rb_define_method(cWorkbook, "validate_sheet_name", workbook_validate_sheet_name_, 1);
+  rb_define_method(cWorkbook, "validate_worksheet_name", workbook_validate_sheet_name_, 1);
 
   /*
    * This attribute contains effective font widths used for automatic column
