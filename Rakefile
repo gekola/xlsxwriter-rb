@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'rake/extensiontask'
 
 task default: :test
@@ -15,10 +16,15 @@ DEP_DIR='ext/xlsxwriter/libxlsxwriter'
 
 desc "Checkout xlsxwriter C library"
 task :patch_dep do
- `cd #{DEP_DIR} && git reset --hard`
+  patches = Dir["#{pwd}/dep_patches/*.patch"]
+  chdir(DEP_DIR) do
+    if Dir.exist?('.git')
+      sh 'git reset --hard'
 
-  Dir['./dep_patches/*.patch'].each do |patch|
-    `(cd #{DEP_DIR} && patch -N -p1) <#{patch}`
+      patches.each do |patch|
+        sh "patch -N -p1 <#{patch}"
+      end
+    end
   end
 end
 

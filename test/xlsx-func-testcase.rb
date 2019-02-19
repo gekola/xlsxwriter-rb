@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'xlsxwriter'
 require_relative './support/xlsx_comparable'
 

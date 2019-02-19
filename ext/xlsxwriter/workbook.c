@@ -1,4 +1,6 @@
 #include <string.h>
+#include <ruby.h>
+#include <ruby/thread.h>
 #include "xlsxwriter.h"
 #include "chart.h"
 #include "format.h"
@@ -119,7 +121,7 @@ workbook_free(void *p) {
     if (ptr->properties) {
       workbook_set_properties(ptr->workbook, ptr->properties);
     }
-    workbook_close(ptr->workbook);
+    rb_thread_call_without_gvl((void *(*)(void *)) workbook_close, ptr->workbook, RUBY_UBF_IO, NULL);
     ptr->workbook = NULL;
   }
   if (ptr->path) {

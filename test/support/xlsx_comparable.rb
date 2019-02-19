@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'test/unit'
 require 'zip'
 
@@ -67,7 +69,7 @@ module XlsxComparable
   private
 
   def _xml_to_list(xml_str)
-    elements = xml_str.strip.split(/>\s*</).each do |el|
+    xml_str.strip.split(/>\s*</).each do |el|
       el.gsub!("\r", '')
       el.insert 0, '<' unless el[0]  == '<'
       el <<        '>' unless el[-1] == '>'
@@ -78,7 +80,7 @@ module XlsxComparable
     vml_str.gsub!("\r", '')
 
     vml = vml_str.split("\n")
-    vml_str = ''.tap do |vml_str|
+    vml_str = String.new.tap do |vml_str|
       vml.each do |line|
         line.strip!
         next if line == ''

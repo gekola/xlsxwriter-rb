@@ -14,6 +14,38 @@ index ba71ff7..091af4a 100644
  
  typedef voidpf   (ZCALLBACK *open_file_func)      OF((voidpf opaque, const char* filename, int mode));
  typedef uLong    (ZCALLBACK *read_file_func)      OF((voidpf opaque, voidpf stream, void* buf, uLong size));
+diff --git a/src/Makefile b/src/Makefile
+index 2f1107a..4315097 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -51,11 +51,6 @@ endif
+ # Flags passed to compiler.
+ CFLAGS   += -g -O3 -Wall -Wextra -pedantic -ansi
+ 
+-# Fix for modified zconf.h on Gentoo.
+-ifneq (,$(findstring gentoo, $(shell uname -sr)))
+-CFLAGS += -DOF=_Z_OF
+-endif
+-
+ 
+ # Ignore icc remarks about inlining limits.
+ ifeq ($(CC),icc)
+diff --git a/third_party/minizip/Makefile b/third_party/minizip/Makefile
+index 02f04c7..0a9571c 100644
+--- a/third_party/minizip/Makefile
++++ b/third_party/minizip/Makefile
+@@ -32,11 +32,6 @@ CC = gcc
+ CFLAGS += -DUSE_FILE32API
+ endif
+ 
+-# Fix for modified zconf.h on Gentoo.
+-ifneq (,$(findstring gentoo, $(UNAME)))
+-CFLAGS += -DOF=_Z_OF
+-endif
+-
+ all: ioapi.o zip.o  ioapi.so zip.so
+ 
+ %.o  : %.c
 diff --git a/third_party/minizip/ioapi.h b/third_party/minizip/ioapi.h
 index 43aaf6f..754f8ba 100644
 --- a/third_party/minizip/ioapi.h

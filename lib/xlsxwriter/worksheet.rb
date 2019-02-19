@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 class XlsxWriter::Worksheet
   # Last row number written with #add_row
   attr_reader :current_row
 
-  # Thiner characters list used for column width logic mimicing axlsx behaviour
+  # Thiner characters list used for column width logic mimicking axlsx behaviour
   THIN_CHARS = '^.acfijklrstxzFIJL()-'.freeze
 
   # Write a +row+. If no +types+ passed XlsxWriter tries to deduce them automatically.

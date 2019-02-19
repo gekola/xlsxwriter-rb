@@ -7,6 +7,7 @@
 #include "worksheet.h"
 
 VALUE mXlsxWriter;
+VALUE rbLibVersion;
 
 /*  Document-module: XlsxWriter
  *
@@ -16,7 +17,7 @@ VALUE mXlsxWriter;
  *  ranges as both numbers, cell strings and range strings.
  *
  *  It also has column authowidth functionality partially taken from Axlsx gem
- *  enable by default.
+ *  enabled by default.
  *
  *  Simple example of using the XlsxWriter to generate an xlsx file containing
  *  'Hello' string in the first rows of column 'A':
@@ -29,6 +30,8 @@ VALUE mXlsxWriter;
  */
 void Init_xlsxwriter() {
   mXlsxWriter = rb_define_module("XlsxWriter");
+  rbLibVersion = rb_str_new_cstr(lxw_version());
+  rb_define_const(mXlsxWriter, "LIBRARY_VERSION", rbLibVersion);
 
   init_xlsxwriter_workbook();
   init_xlsxwriter_workbook_properties();
