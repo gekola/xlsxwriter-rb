@@ -20,14 +20,18 @@ class XlsxWriter::Worksheet
     row_idx = @current_row ||= 0
     @current_row += 1
 
+    style_ary = style if style.is_a?(Array)
+    types_ary = types if types.is_a?(Array)
+
     row.each_with_index do |value, idx|
-      cell_style = style.is_a?(Array) ? style[idx] : style
-      cell_type = types.is_a?(Array) ? types[idx] : types
+      cell_style = style_ary ? style_ary[idx] : style
+      cell_type  = types_ary ? types_ary[idx] : types
 
       case cell_type && cell_type.to_sym
       when :string
-        write_string(row_idx, idx, value.to_s, cell_style)
-        update_col_auto_width(idx, value.to_s, cell_style)
+        value = value.to_s
+        write_string(row_idx, idx, value, cell_style)
+        update_col_auto_width(idx, value, cell_style)
       when :number
         write_number(row_idx, idx, value.to_f, cell_style)
       when :formula
@@ -49,19 +53,19 @@ class XlsxWriter::Worksheet
           write_number(row_idx, idx, value, cell_style)
         when TrueClass, FalseClass
           write_boolean(row_idx, idx, value, cell_style)
+        when Time, (defined?(Date) ? Date : Time)
+          write_datetime(row_idx, idx, value, cell_style)
         when '', nil
           write_blank(row_idx, idx, cell_style) unless skip_empty
         when /\A=/
           write_formula(row_idx, idx, value, cell_style)
-        else
-          if value.is_a?(Time) ||
-             (defined?(Date) && value.is_a?(Date)) ||
-             (defined?(DateTime) && value.is_a?(DateTime))
-            write_datetime(row_idx, idx, value.to_time, cell_style)
-          else # assume string
-            write_string(row_idx, idx, value.to_s, cell_style)
-            update_col_auto_width(idx, value.to_s, cell_style)
-          end
+        when String
+          write_string(row_idx, idx, value, cell_style)
+          update_col_auto_width(idx, value, cell_style)
+        else # assume string
+          value = value.to_s
+          write_string(row_idx, idx, value, cell_style)
+          update_col_auto_width(idx, value, cell_style)
         end
       else
         raise ArgumentError, "Unknown cell type #{cell_type}."
@@ -87,6 +91,6 @@ class XlsxWriter::Worksheet
     font_scale = (@workbook.font_sizes[format] || 11) / 10.0
     width = (val.count(THIN_CHARS) + 3) * font_scale
     width = 255 if width > 255 # Max xlsx column width is 255 characters
-    @col_auto_widths[idx] = [@col_auto_widths[idx], width].compact.max
+    @col_auto_widths[idx] = [@col_auto_widths[idx] || 0, width].max
   end
 end

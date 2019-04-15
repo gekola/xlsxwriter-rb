@@ -206,7 +206,7 @@ worksheet_write_formula_(int argc, VALUE *argv, VALUE self) {
 VALUE worksheet_write_array_formula_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row_from, row_to;
   lxw_col_t col_from, col_to;
-  const char *str;
+  const char *str = NULL;
   VALUE format_key = Qnil;
 
   rb_check_arity(argc, 2, 6);
@@ -215,6 +215,8 @@ VALUE worksheet_write_array_formula_(int argc, VALUE *argv, VALUE self) {
   if (larg < argc) {
     str = StringValueCStr(argv[larg]);
     ++larg;
+  } else {
+    rb_raise(rb_eArgError, "No formula specified");
   }
 
   if (larg < argc) {
@@ -365,8 +367,8 @@ worksheet_write_boolean_(int argc, VALUE *argv, VALUE self) {
 }
 
 /*  call-seq:
- *     ws.write_datetime(cell, format = nil) -> self
- *     ws.write_datetime(row, col, format = nil) -> self
+ *     ws.write_blank(cell, format = nil) -> self
+ *     ws.write_blank(row, col, format = nil) -> self
  *
  *  Make a +cell+ blank with +format+.
  */
