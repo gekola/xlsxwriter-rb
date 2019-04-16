@@ -1,6 +1,7 @@
 #include "chart.h"
 #include "worksheet.h"
 #include "workbook.h"
+#include "xlsxwriter_ext.h"
 
 VALUE cWorksheet;
 
@@ -1231,6 +1232,167 @@ worksheet_set_vertical_dpi_(VALUE self, VALUE val) {
   return val;
 }
 
+/*  call-seq:
+ *     ws.add_data_validation(cell, options) -> self
+ *     ws.add_data_validation(range, options) -> self
+ *     ws.add_data_validation(row, col, options) -> self
+ *     ws.add_data_validation(row_from, col_from, row_to, col_to, options) -> self
+ *
+ *  Adds data validation or limits user input to a list of values.
+ */
+VALUE
+worksheet_data_validation_(int argc, VALUE *argv, VALUE self) {
+  lxw_data_validation data_validation = {0};
+  rb_check_arity(argc, 2, 5);
+  char range = 0;
+  if (argc > 3) {
+    range = 1;
+  } else if (TYPE(argv[0]) == T_STRING) {
+    char *str = RSTRING_PTR(argv[0]);
+    if (strstr(str, ":")) {
+      range = 1;
+    } else if ((str[0] >= 'A' && str[0] <= 'Z') ||
+               (str[0] >= 'a' && str[0] <= 'z'))
+      range = argc > 2;
+  }
+
+  lxw_row_t row, row2;
+  lxw_col_t col, col2;
+  int larg;
+  if (range) {
+    larg = extract_range(argc, argv, &row, &col, &row2, &col2);
+  } else {
+    larg = extract_cell(argc, argv, &row, &col);
+  }
+
+  if (larg != argc - 1) {
+    rb_raise(rb_eArgError, "Wrong number of arguments");
+  }
+  VALUE opts = argv[larg];
+  if (TYPE(opts) != T_HASH) {
+    rb_raise(rb_eTypeError, "Wrong type for options %"PRIsVALUE", Hash expected", rb_obj_class(opts));
+  }
+
+  VALUE val;
+  val = rb_hash_aref(opts, ID2SYM(rb_intern("validate")));
+  if (!NIL_P(val)) {
+    data_validation.validate = NUM2INT(val);
+  }
+
+  val = rb_hash_aref(opts, ID2SYM(rb_intern("criteria")));
+  if (!NIL_P(val)) {
+    data_validation.criteria = NUM2INT(val);
+  }
+
+  val = rb_hash_aref(opts, ID2SYM(rb_intern("ignore_blank")));
+  if (!NIL_P(val) && val) {
+    data_validation.ignore_blank = LXW_VALIDATION_ON;
+  }
+
+  val = rb_hash_aref(opts, ID2SYM(rb_intern("show_input")));
+  if (!NIL_P(val) && val) {
+    data_validation.show_input = LXW_VALIDATION_ON;
+  }
+
+  val = rb_hash_aref(opts, ID2SYM(rb_intern("show_error")));
+  if (!NIL_P(val) && val) {
+    data_validation.show_error = LXW_VALIDATION_ON;
+  }
+
+  val = rb_hash_aref(opts, ID2SYM(rb_intern("error_type")));
+  if (!NIL_P(val)) {
+    data_validation.error_type = NUM2INT(val);
+  }
+
+  val = rb_hash_aref(opts, ID2SYM(rb_intern("dropdown")));
+  if (!NIL_P(val) && val) {
+    data_validation.dropdown = LXW_VALIDATION_ON;
+  }
+
+  val = rb_hash_aref(opts, ID2SYM(rb_intern("input_title")));
+  if (!NIL_P(val)) {
+    data_validation.input_title = RSTRING_PTR(val);
+  }
+
+  val = rb_hash_aref(opts, ID2SYM(rb_intern("input_message")));
+  if (!NIL_P(val)) {
+    data_validation.input_message = RSTRING_PTR(val);
+  }
+
+  val = rb_hash_aref(opts, ID2SYM(rb_intern("error_title")));
+  if (!NIL_P(val)) {
+    data_validation.error_title = RSTRING_PTR(val);
+  }
+
+  val = rb_hash_aref(opts, ID2SYM(rb_intern("error_message")));
+  if (!NIL_P(val)) {
+    data_validation.error_message = RSTRING_PTR(val);
+  }
+
+  VALUE is_datetime;
+#define parse_array_0(x)
+#define parse_array_1(prefix)                                           \
+    if (TYPE(val) == T_ARRAY) {                                         \
+      int len = RARRAY_LEN(val);                                        \
+      data_validation.prefix##_list = malloc(sizeof(char *) * (len + 1)); \
+      data_validation.prefix##_list[len] = NULL;                        \
+      for (int i = 0; i < len; ++i) {                                   \
+        data_validation.prefix##_list[i] = RSTRING_PTR(rb_ary_entry(val, i)); \
+      }                                                                 \
+    } else
+
+#define parse_value(prefix, key, handle_array)                          \
+  val = rb_hash_aref(opts, ID2SYM(rb_intern(key)));                     \
+  if (!NIL_P(val)) {                                                    \
+    switch(TYPE(val)) {                                                 \
+    case T_FLOAT: case T_FIXNUM: case T_BIGNUM:                         \
+      data_validation.prefix##_number = NUM2DBL(val);                   \
+      break;                                                            \
+    case T_STRING:                                                      \
+      data_validation.prefix##_formula = RSTRING_PTR(val);              \
+      if (data_validation.prefix##_formula[0] != '=') {                 \
+        data_validation.prefix##_formula = 0;                           \
+        rb_raise(rb_eArgError, "Is not a formula: %"PRIsVALUE, val);    \
+      }                                                                 \
+      break;                                                            \
+    default:                                                            \
+      is_datetime = rb_funcall(val, rb_intern("is_a?"), 1, rb_cTime);   \
+      parse_array_##handle_array(prefix)                                \
+      if (is_datetime || rb_respond_to(val, rb_intern("to_time"))) {    \
+        if (!is_datetime)                                               \
+          val = rb_funcall(val, rb_intern("to_time"), 0);               \
+        data_validation.prefix##_datetime = value_to_lxw_datetime(val); \
+      } else {                                                          \
+        rb_raise(rb_eTypeError, "Cannot handle " key " type %"PRIsVALUE, rb_class_of(val)); \
+      }                                                                 \
+    }                                                                   \
+  }
+
+  parse_value(minimum, "min", 0);
+  parse_value(maximum, "max", 0);
+  parse_value(value, "value", 1);
+
+#undef parse_array_0
+#undef parse_array_1
+#undef parse_value
+
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  lxw_error err;
+  if (range) {
+    err = worksheet_data_validation_range(ptr->worksheet, row, col, row2, col2, &data_validation);
+  } else {
+    err = worksheet_data_validation_cell(ptr->worksheet, row, col, &data_validation);
+  }
+
+  if (data_validation.value_list) {
+    free(data_validation.value_list);
+  }
+
+  handle_xlsxwriter_error(err);
+
+  return self;
+}
 
 lxw_col_t
 value_to_col(VALUE value) {
@@ -1407,7 +1569,10 @@ init_xlsxwriter_worksheet() {
   rb_define_method(cWorksheet, "vertical_dpi", worksheet_get_vertical_dpi_, 0);
   rb_define_method(cWorksheet, "vertical_dpi=", worksheet_set_vertical_dpi_, 1);
 
+  rb_define_method(cWorksheet, "add_data_validation", worksheet_data_validation_, -1);
+
 #define MAP_LXW_WH_CONST(name, val_name) rb_define_const(cWorksheet, #name, INT2NUM(LXW_##val_name))
+#define MAP_LXW_WH_CONST1(name) MAP_LXW_WH_CONST(name, name)
   MAP_LXW_WH_CONST(DEF_COL_WIDTH, DEF_COL_WIDTH);
   MAP_LXW_WH_CONST(DEF_ROW_HEIGHT, DEF_ROW_HEIGHT);
 
@@ -1415,5 +1580,30 @@ init_xlsxwriter_worksheet() {
   MAP_LXW_WH_CONST(GRIDLINES_SHOW_SCREEN, SHOW_SCREEN_GRIDLINES);
   MAP_LXW_WH_CONST(GRIDLINES_SHOW_PRINT, SHOW_PRINT_GRIDLINES);
   MAP_LXW_WH_CONST(GRIDLINES_SHOW_ALL, SHOW_ALL_GRIDLINES);
+
+  MAP_LXW_WH_CONST1(VALIDATION_TYPE_INTEGER);
+  MAP_LXW_WH_CONST1(VALIDATION_TYPE_INTEGER_FORMULA);
+  MAP_LXW_WH_CONST1(VALIDATION_TYPE_DECIMAL);
+  MAP_LXW_WH_CONST1(VALIDATION_TYPE_DECIMAL_FORMULA);
+  MAP_LXW_WH_CONST1(VALIDATION_TYPE_LIST);
+  MAP_LXW_WH_CONST1(VALIDATION_TYPE_LIST_FORMULA);
+  MAP_LXW_WH_CONST1(VALIDATION_TYPE_DATE);
+  MAP_LXW_WH_CONST1(VALIDATION_TYPE_DATE_FORMULA);
+  MAP_LXW_WH_CONST1(VALIDATION_TYPE_TIME);
+  MAP_LXW_WH_CONST1(VALIDATION_TYPE_TIME_FORMULA);
+  MAP_LXW_WH_CONST1(VALIDATION_TYPE_LENGTH);
+  MAP_LXW_WH_CONST1(VALIDATION_TYPE_LENGTH_FORMULA);
+  MAP_LXW_WH_CONST1(VALIDATION_TYPE_CUSTOM_FORMULA);
+  MAP_LXW_WH_CONST1(VALIDATION_TYPE_ANY);
+
+  MAP_LXW_WH_CONST1(VALIDATION_CRITERIA_BETWEEN);
+  MAP_LXW_WH_CONST1(VALIDATION_CRITERIA_NOT_BETWEEN);
+  MAP_LXW_WH_CONST1(VALIDATION_CRITERIA_EQUAL_TO);
+  MAP_LXW_WH_CONST1(VALIDATION_CRITERIA_NOT_EQUAL_TO);
+  MAP_LXW_WH_CONST1(VALIDATION_CRITERIA_GREATER_THAN);
+  MAP_LXW_WH_CONST1(VALIDATION_CRITERIA_LESS_THAN);
+  MAP_LXW_WH_CONST1(VALIDATION_CRITERIA_GREATER_THAN_OR_EQUAL_TO);
+  MAP_LXW_WH_CONST1(VALIDATION_CRITERIA_LESS_THAN_OR_EQUAL_TO);
+#undef MAP_LXW_WH_CONST1
 #undef MAP_LXW_WH_CONST
 }

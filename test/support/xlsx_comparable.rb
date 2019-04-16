@@ -18,7 +18,7 @@ module XlsxComparable
 
           if %w(.png .jpeg .bmp .bin).include?(File.extname(exp_entry.name))
             exp_xml_str.force_encoding('BINARY')
-            assert_equal(got_xml_str, exp_xml_str)
+            assert_equal(exp_xml_str, got_xml_str)
             next
           end
 
@@ -60,7 +60,7 @@ module XlsxComparable
             exp_xml = _sort_rel_file_data(exp_xml)
           end
 
-          assert_equal got_xml, exp_xml
+          assert_equal exp_xml, got_xml
         end
       end
     end

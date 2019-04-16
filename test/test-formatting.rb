@@ -136,4 +136,57 @@ class TestFormatting < XlsxWriterTestCase
     ws.write_string(1, 'D', 'test', :top_left)
     ws.write_string(1, 'F', 'test', :top_bottom)
   end
+
+  test 'format15' do |wb|
+    wb
+      .add_format(:format1, bold: true)
+      .add_format(:format2, bold: true, num_format_index: 1)
+      .add_worksheet
+      .write_number('A1', 1, :format1)
+      .write_number('A2', 2, :format2)
+  end
+
+  test 'format50' do |wb|
+    wb
+      .add_format(:format1, num_format: '#,##0.00000')
+      .add_format(:format2, num_format: '#,##0.0')
+      .add_worksheet
+      .set_column('A', 'A', width: 12)
+      .write_number('A1', 1234.5, :format1)
+      .write_number('A2', 1234.5, :format2)
+  end
+
+  test 'format51' do |wb|
+    wb.add_format(:numf1, num_format: '0.0')
+      .add_format(:numf3, num_format: '0.000')
+      .add_format(:numf4, num_format: '0.0000')
+      .add_format(:numf5, num_format: '0.00000')
+      .add_worksheet
+      .set_column(0, 0, width: 12)
+      .write_number(0, 0, 123.456, :numf1)
+      .write_number(1, 0, 123.456, :numf3)
+      .write_number(2, 0, 123.456, :numf4)
+      .write_number(3, 0, 123.456, :numf5)
+  end
+
+  test 'format52' do |wb|
+    wb.add_format(:numf1, num_format: '0.0')
+      .add_format(:numf3, num_format: '0.000')
+      .add_format(:numf4, num_format: '0.0000')
+      .add_format(:numf5, num_format: '0.00000')
+      .add_format(:numf1_bold, num_format: '0.0', bold: true)
+      .add_format(:numf3_bold, num_format: '0.000', bold: true)
+      .add_format(:numf4_bold, num_format: '0.0000', bold: true)
+      .add_format(:numf5_bold, num_format: '0.00000', bold: true)
+      .add_worksheet
+      .set_column(0, 0, width: 12)
+      .write_number(0, 0, 123.456, :numf1)
+      .write_number(1, 0, 123.456, :numf3)
+      .write_number(2, 0, 123.456, :numf4)
+      .write_number(3, 0, 123.456, :numf5)
+      .write_number(4, 0, 123.456, :numf1_bold)
+      .write_number(5, 0, 123.456, :numf3_bold)
+      .write_number(6, 0, 123.456, :numf4_bold)
+      .write_number(7, 0, 123.456, :numf5_bold)
+  end
 end

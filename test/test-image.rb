@@ -83,4 +83,32 @@ class TestImage < XlsxWriterTestCase
   test 'image29' do |wb|
     wb.add_worksheet.insert_image(0, 10, image_path('red_208.png'), x_offset: -210, y_offset: 1)
   end
+
+  test 'image36' do |wb|
+    wb.add_worksheet.insert_image('E9', image_path('happy.jpg'))
+  end
+
+  test 'image44' do |wb|
+    wb.add_worksheet
+      .insert_image('E9', image_path('red.png'))
+      .set_row(8, height: 30)
+  end
+
+  test 'image45' do |wb|
+    wb.add_worksheet
+      .insert_image('E9', image_path('red.png'))
+      .set_row(8, height: 30, hide: true)
+  end
+
+  test 'image46' do |wb|
+    wb.add_worksheet
+      .insert_image('E9', image_path('red.png'), x_offset: 0, y_offset: 4)
+      .set_row(8, height: 30, hide: true)
+  end
+
+  test 'image47' do |wb|
+    wb.add_worksheet
+      .insert_image('E9', image_path('red.png'))
+      .set_row(9, hide: true)
+  end
 end
