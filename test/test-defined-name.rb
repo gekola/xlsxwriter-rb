@@ -29,6 +29,11 @@ class TestDefinedName < XlsxWriterTestCase
     wb.define_name "_Fog",          "=Sheet1!$A$1"
   end
 
+  test 'defined_name02' do |wb|
+    wb.add_worksheet 'sheet One'
+    wb.define_name "Sales", "='sheet One'!$G$1:$H$10"
+  end
+
   test 'defined_name03' do |wb, t|
     t.ignore_elements = { 'xl/worksheets/sheet1.xml' => [ '<pageMargins' ] }
     wb.add_worksheet('sheet One')

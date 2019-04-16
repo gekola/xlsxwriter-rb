@@ -462,9 +462,17 @@ worksheet_set_row_(VALUE self, VALUE row, VALUE opts) {
   if (val != Qnil && val)
     options.hidden = 1;
 
+  val = rb_hash_aref(opts, ID2SYM(rb_intern("collapse")));
+  if (val != Qnil && val)
+    options.collapsed = 1;
+
+  val = rb_hash_aref(opts, ID2SYM(rb_intern("level")));
+  if (val != Qnil)
+    options.level = NUM2INT(val);
+
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
-  if (options.hidden) {
+  if (options.hidden || options.collapsed || options.level) {
     worksheet_set_row_opt(ptr->worksheet, NUM2INT(row), height, format, &options);
   } else {
     worksheet_set_row(ptr->worksheet, NUM2INT(row), height, format);
@@ -501,9 +509,17 @@ worksheet_set_column_(VALUE self, VALUE col_from, VALUE col_to, VALUE opts) {
   if (val != Qnil && val)
     options.hidden = 1;
 
+  val = rb_hash_aref(opts, ID2SYM(rb_intern("collapse")));
+  if (val != Qnil && val)
+    options.collapsed = 1;
+
+  val = rb_hash_aref(opts, ID2SYM(rb_intern("level")));
+  if (val != Qnil)
+    options.level = NUM2INT(val);
+
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
-  if (options.hidden) {
+  if (options.hidden || options.collapsed || options.level) {
     worksheet_set_column_opt(ptr->worksheet, col1, col2, width, format, &options);
   } else {
     worksheet_set_column(ptr->worksheet, col1, col2, width, format);
@@ -1196,6 +1212,27 @@ worksheet_protect_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/*  call-seq: ws.outline_settings = { visible: true, symbols_below: true, symbols_right: true, auto_style: false }
+ *
+ *  Sets the Outline and Grouping display properties.
+ */
+VALUE
+worksheet_outline_settings_(VALUE self, VALUE opts) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  VALUE value;
+#define parse_param(name, default)                                      \
+  value = rb_hash_aref(opts, ID2SYM(rb_intern(#name)));                 \
+  uint8_t name = NIL_P(value) ? default : (value ? LXW_TRUE : LXW_FALSE)
+  parse_param(visible, LXW_TRUE);
+  parse_param(symbols_below, LXW_TRUE);
+  parse_param(symbols_right, LXW_TRUE);
+  parse_param(auto_style, LXW_FALSE);
+#undef parse_param
+  worksheet_outline_settings(ptr->worksheet, visible, symbols_below, symbols_right, auto_style);
+  return self;
+}
+
 /*  call-seq: ws.set_default_row(height, hide_unuser_rows) -> self
  *
  *  Sets the default row properties for the worksheet.
@@ -1564,6 +1601,7 @@ init_xlsxwriter_worksheet() {
   rb_define_method(cWorksheet, "hide_zero", worksheet_hide_zero_, 0);
   rb_define_method(cWorksheet, "tab_color=", worksheet_set_tab_color_, 1);
   rb_define_method(cWorksheet, "protect", worksheet_protect_, -1);
+  rb_define_method(cWorksheet, "outline_settings=", worksheet_outline_settings_, 1);
   rb_define_method(cWorksheet, "set_default_row", worksheet_set_default_row_, 2);
 
   rb_define_method(cWorksheet, "vertical_dpi", worksheet_get_vertical_dpi_, 0);

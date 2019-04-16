@@ -31,4 +31,38 @@ class TestOptimize < XlsxWriterTestCase
       .write_string(4, 'E', 'Foo ', nil)
       .write_string(6, 'A', "\tFoo\t", nil)
   end
+
+  test('optimize22', constant_memory: true) do |wb|
+    wb
+      .add_format(:bold, bold: true)
+      .add_worksheet
+      .set_column(0, 0, width: 36, format: :bold)
+  end
+
+  test('optimize23', constant_memory: true) do |wb|
+    wb
+      .add_format(:bold, bold: true)
+      .add_worksheet
+      .set_row(0, height: 20, format: :bold)
+  end
+
+  test('optimize24', constant_memory: true) do |wb|
+    wb
+      .add_format(:bold, bold: true)
+      .add_worksheet
+      .set_row(0, height: 20, format: :bold)
+      .write_string(0, 0, 'Foo')
+  end
+
+  test('optimize25', constant_memory: true) do |wb|
+    wb
+      .add_format(:bold, bold: true)
+      .add_worksheet
+      .set_row(0, height: 20, format: :bold)
+      .write_string(2, 0, 'Foo')
+  end
+
+  test('optimize26', constant_memory: true) do |wb|
+    wb.add_worksheet.write_string(2, 2, 'café')
+  end
 end

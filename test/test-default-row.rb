@@ -12,6 +12,28 @@ class TestDefaultRow < XlsxWriterTestCase
     ws.write_string(9, 'A', 'Bar', nil)
   end
 
+  test 'default_row02' do |wb|
+    ws = wb.add_worksheet
+
+    ws.set_default_row(15, true)
+
+    ws.write_string('A1', 'Foo', nil)
+    ws.write_string('A10', 'Bar', nil)
+
+    (1..8).each { |i| ws.set_row i, height: 15 }
+  end
+
+  test 'default_row03' do |wb|
+    ws = wb.add_worksheet
+
+    ws.set_default_row(24, true)
+
+    ws.write_string('A1', 'Foo', nil)
+    ws.write_string('A10', 'Bar', nil)
+
+    (1..8).each { |i| ws.set_row i, height: 24 }
+  end
+
   test 'default_row05' do |wb|
     ws = wb.add_worksheet
 
