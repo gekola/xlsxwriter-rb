@@ -1,7 +1,8 @@
 #include <ruby.h>
-#include "xlsxwriter.h"
+#include <xlsxwriter.h>
 #include "chart.h"
 #include "format.h"
+#include "rich_string.h"
 #include "workbook.h"
 #include "workbook_properties.h"
 #include "worksheet.h"
@@ -33,11 +34,12 @@ void Init_xlsxwriter() {
   mXlsxWriter = rb_define_module("XlsxWriter");
   rbLibVersion = rb_str_new_cstr(lxw_version());
   rb_define_const(mXlsxWriter, "LIBRARY_VERSION", rbLibVersion);
-  eXlsxWriterError = rb_define_class_id_under(mXlsxWriter, rb_intern("Error"), rb_eStandardError);
+  eXlsxWriterError = rb_const_get(mXlsxWriter, rb_intern("Error"));
 
   init_xlsxwriter_workbook();
   init_xlsxwriter_workbook_properties();
   init_xlsxwriter_format();
   init_xlsxwriter_worksheet();
   init_xlsxwriter_chart();
+  init_xlsxwriter_rich_string();
 }

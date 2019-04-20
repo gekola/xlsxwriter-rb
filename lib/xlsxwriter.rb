@@ -4,5 +4,7 @@ module XlsxWriter
 end
 
 require 'xlsxwriter/version'
-require 'xlsxwriter/xlsxwriter'
+require 'xlsxwriter/error'
+require 'xlsxwriter/rich_string'
 require 'xlsxwriter/worksheet'
+require 'xlsxwriter/xlsxwriter'

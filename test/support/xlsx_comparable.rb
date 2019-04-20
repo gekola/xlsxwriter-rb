@@ -4,15 +4,16 @@ require 'test/unit'
 require 'zip'
 
 module XlsxComparable
-  def assert_xlsx_equal(got_path, exp_path, ignore_files=[], ignore_elements={})
+  def assert_xlsx_equal(got_path, exp_path, ignore_files = [], ignore_elements = {})
     Zip::File.open(exp_path) do |exp_zip|
       Zip::File.open(got_path) do |got_zip|
-        exp_files = exp_zip.glob('**/*').select { |e| !ignore_files.include?(e.name) }
-        got_files = got_zip.glob('**/*').select { |e| !ignore_files.include?(e.name) }
+        exp_files = exp_zip.glob('**/*').reject { |e| ignore_files.include?(e.name) }
+        got_files = got_zip.glob('**/*').reject { |e| ignore_files.include?(e.name) }
         assert_equal(got_files.map(&:name).sort, exp_files.map(&:name).sort)
 
         exp_files.each do |exp_entry|
           next unless exp_entry.file?
+
           exp_xml_str = exp_zip.read(exp_entry.name)
           got_xml_str = got_zip.read(exp_entry.name)
 
@@ -32,20 +33,20 @@ module XlsxComparable
             exp_xml_str.gsub!(/<calcPr[^>]*>/, '<calcPr/>')
             got_xml_str.gsub!(/<workbookView[^>]*>/, '<workbookView/>')
             got_xml_str.gsub!(/<calcPr[^>]*>/, '<calcPr/>')
-          when /xl\/worksheets\/sheet\d+.xml/
+          when %r{xl/worksheets/sheet\d+.xml}
             exp_xml_str.gsub!(/horizontalDpi="200" /, '')
             exp_xml_str.gsub!(/verticalDpi="200" /, '')
             exp_xml_str.gsub!(/(<pageSetup[^>]*) r:id="rId1"/, '\1')
-          when /xl\/charts\/chart\d+.xml/
+          when %r{xl/charts/chart\d+.xml}
             exp_xml_str.gsub!(/<c:pageMargins[^>]*>/, '<c:pageMargins/>')
             got_xml_str.gsub!(/<c:pageMargins[^>]*>/, '<c:pageMargins/>')
           end
 
+          got_xml = _xml_to_list(got_xml_str)
+
           if exp_entry.name =~ /.vml\z/
-            got_xml = _xml_to_list(got_xml_str)
             exp_xml = _vml_to_list(exp_xml_str)
           else
-            got_xml = _xml_to_list(got_xml_str)
             exp_xml = _xml_to_list(exp_xml_str)
           end
 
@@ -70,29 +71,27 @@ module XlsxComparable
 
   def _xml_to_list(xml_str)
     xml_str.strip.split(/>\s*</).each do |el|
-      el.gsub!("\r", '')
+      el.delete!("\r")
       el.insert 0, '<' unless el[0]  == '<'
       el <<        '>' unless el[-1] == '>'
     end
   end
 
   def _vml_to_list(vml_str)
-    vml_str.gsub!("\r", '')
+    vml_str.delete!("\r")
 
     vml = vml_str.split("\n")
-    vml_str = String.new.tap do |vml_str|
-      vml.each do |line|
-        line.strip!
-        next if line == ''
-        line.gsub!(?', ?")
-        line << ' ' if line =~ '"$'
-        line << "\n" if line =~ '>$'
-        line.gsub!('><', ">\n<")
-        if line == "<x:Anchor>\n"
-          line.strip!
-        end
-        wml_str << line
-      end
+    vml_str = String.new
+    vml.each do |line|
+      line.strip!
+      next if line == ''
+
+      line.tr!(?', ?")
+      line << ' ' if line =~ /"$/
+      line << "\n" if line =~ />$/
+      line.gsub!('><', ">\n<")
+      line.strip! if line == "<x:Anchor>\n"
+      wml_str << line
     end
     vml_str.rstrip.split("\n")
   end

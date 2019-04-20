@@ -12,7 +12,6 @@ struct workbook {
 
 lxw_format *workbook_get_format(VALUE self, VALUE key);
 lxw_datetime value_to_lxw_datetime(VALUE val);
-void handle_lxw_error(lxw_error err);
 
 void init_xlsxwriter_workbook();
 

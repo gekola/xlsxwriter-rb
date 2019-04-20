@@ -6,9 +6,9 @@
 extern VALUE mXlsxWriter;
 extern VALUE eXlsxWriterError;
 
-inline void handle_xlsxwriter_error(lxw_error err) {
+inline void handle_lxw_error(lxw_error err) {
   if (err) {
-    rb_raise(eXlsxWriterError, lxw_strerror(err));
+    rb_exc_raise(rb_funcall(eXlsxWriterError, rb_intern("new"), 2, rb_str_new_cstr(lxw_strerror(err)), INT2NUM(err)));
   }
 }
 

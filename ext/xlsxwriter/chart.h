@@ -1,5 +1,5 @@
 #include <ruby.h>
-#include "xlsxwriter.h"
+#include <xlsxwriter.h>
 
 #ifndef __CHART__
 #define __CHART__

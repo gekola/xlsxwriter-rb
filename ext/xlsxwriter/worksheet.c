@@ -1,4 +1,5 @@
 #include "chart.h"
+#include "rich_string.h"
 #include "worksheet.h"
 #include "workbook.h"
 #include "xlsxwriter_ext.h"
@@ -69,7 +70,7 @@ worksheet_init(int argc, VALUE *argv, VALUE self) {
   Data_Get_Struct(argv[0], struct workbook, wb_ptr);
   ptr->worksheet = workbook_add_worksheet(wb_ptr->workbook, name);
   if (!ptr->worksheet)
-    rb_raise(rb_eRuntimeError, "worksheet was not created");
+    rb_raise(eXlsxWriterError, "worksheet was not created");
   return self;
 }
 
@@ -401,7 +402,8 @@ worksheet_write_blank_(int argc, VALUE *argv, VALUE self) {
  *
  *  Writes a +formula+ with +value+ into a +cell+ with +format+.
  */
-VALUE worksheet_write_formula_num_(int argc, VALUE *argv, VALUE self) {
+VALUE
+worksheet_write_formula_num_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row;
   lxw_col_t col;
   VALUE formula = Qnil;
@@ -432,6 +434,53 @@ VALUE worksheet_write_formula_num_(int argc, VALUE *argv, VALUE self) {
   lxw_format *format = workbook_get_format(workbook, format_key);
   Data_Get_Struct(self, struct worksheet, ptr);
   worksheet_write_formula_num(ptr->worksheet, row, col, str, format, NUM2DBL(value));
+  return self;
+}
+
+/*  call-seq:
+ *     ws.write_rich_string(cell, value) -> self
+ *     ws.write_rich_string(row, col, value) -> self
+ *
+ *  Writes a +rich_string+ value into a +cell+.
+ */
+VALUE
+worksheet_write_rich_string_(int argc, VALUE *argv, VALUE self) {
+  lxw_row_t row;
+  lxw_col_t col;
+  VALUE value = Qnil;
+  VALUE format_key = Qnil;
+
+  rb_check_arity(argc, 2, 4);
+  int larg = extract_cell(argc, argv, &row, &col);
+  VALUE workbook = rb_iv_get(self, "@workbook");
+
+  if (larg < argc) {
+    value = argv[larg];
+    if (TYPE(value) == T_ARRAY)
+      value = rb_funcall(cRichString, rb_intern("new"), 2, workbook, value);
+    else if (rb_class_of(value) != cRichString) {
+      rb_raise(rb_eArgError, "Wrong type of value: %"PRIsVALUE, rb_class_of(value));
+    }
+    ++larg;
+  }
+
+  if (larg < argc) {
+    format_key = argv[larg];
+    ++larg;
+  }
+
+  if (NIL_P(value)) {
+    rb_raise(rb_eArgError, "No value specified");
+  }
+
+  struct worksheet *ptr;
+  lxw_format *format = workbook_get_format(workbook, format_key);
+  lxw_rich_string_tuple **rich_string = serialize_rich_string(value);
+  if (rich_string) {
+    Data_Get_Struct(self, struct worksheet, ptr);
+    lxw_error err = worksheet_write_rich_string(ptr->worksheet, row, col, rich_string, format);
+    handle_lxw_error(err);
+  }
   return self;
 }
 
@@ -693,7 +742,8 @@ worksheet_autofilter_(int argc, VALUE *argv, VALUE self) {
  *
  *  Set the worksheet to be active on opening the workbook.
  */
-VALUE worksheet_activate_(VALUE self) {
+VALUE
+worksheet_activate_(VALUE self) {
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
   worksheet_activate(ptr->worksheet);
@@ -704,7 +754,8 @@ VALUE worksheet_activate_(VALUE self) {
  *
  *  Set the worksheet to be selected on openong the workbook.
  */
-VALUE worksheet_select_(VALUE self) {
+VALUE
+worksheet_select_(VALUE self) {
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
   worksheet_select(ptr->worksheet);
@@ -1426,7 +1477,7 @@ worksheet_data_validation_(int argc, VALUE *argv, VALUE self) {
     free(data_validation.value_list);
   }
 
-  handle_xlsxwriter_error(err);
+  handle_lxw_error(err);
 
   return self;
 }
@@ -1442,6 +1493,11 @@ value_to_col(VALUE value) {
     rb_raise(rb_eTypeError, "Wrong type for col %"PRIsVALUE, rb_obj_class(value));
     return -1;
   }
+}
+
+VALUE
+rb_extract_col(VALUE _self, VALUE col) {
+  return INT2FIX(value_to_col(col));
 }
 
 int
@@ -1563,6 +1619,7 @@ init_xlsxwriter_worksheet() {
   rb_define_method(cWorksheet, "write_boolean", worksheet_write_boolean_, -1);
   rb_define_method(cWorksheet, "write_blank", worksheet_write_blank_, -1);
   rb_define_method(cWorksheet, "write_formula_num", worksheet_write_formula_num_, -1);
+  rb_define_method(cWorksheet, "write_rich_string", worksheet_write_rich_string_, -1);
   rb_define_method(cWorksheet, "set_row", worksheet_set_row_, 2);
   rb_define_method(cWorksheet, "set_column", worksheet_set_column_, 3);
   rb_define_method(cWorksheet, "insert_image", worksheet_insert_image_, -1);
@@ -1608,6 +1665,7 @@ init_xlsxwriter_worksheet() {
   rb_define_method(cWorksheet, "vertical_dpi=", worksheet_set_vertical_dpi_, 1);
 
   rb_define_method(cWorksheet, "add_data_validation", worksheet_data_validation_, -1);
+  rb_define_private_method(cWorksheet, "extract_column", rb_extract_col, 1);
 
 #define MAP_LXW_WH_CONST(name, val_name) rb_define_const(cWorksheet, #name, INT2NUM(LXW_##val_name))
 #define MAP_LXW_WH_CONST1(name) MAP_LXW_WH_CONST(name, name)

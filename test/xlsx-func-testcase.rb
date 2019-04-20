@@ -2,6 +2,7 @@
 
 require 'xlsxwriter'
 require_relative './support/xlsx_comparable'
+require_relative './support/with_xlsx_file'
 
 class XlsxWriterTestCaseConfig
   attr_accessor :ignore_elements, :ignore_files
@@ -12,23 +13,22 @@ class XlsxWriterTestCaseConfig
 end
 
 class XlsxWriterTestCase < Test::Unit::TestCase
+  include WithXlsxFile
   include XlsxComparable
 
-  def self.test(name, opts=nil, &block)
+  def self.test(name, **opts, &block)
     define_method(:"test_#{name}") do
       file_path = "tmp/#{name}.xlsx"
       ref_name = opts && opts.delete(:ref_file_name) || name
       ref_file_path = "ext/xlsxwriter/libxlsxwriter/test/functional/xlsx_files/#{ref_name}.xlsx"
-      begin
-        tc = XlsxWriterTestCaseConfig.new
-        args = [file_path, opts].compact
-        XlsxWriter::Workbook.open(*args) do |wb|
-          instance_exec(wb, tc, &block)
-        end
+      tc = XlsxWriterTestCaseConfig.new
 
+      compare_files = proc {
         assert_xlsx_equal file_path, ref_file_path, tc.ignore_files, tc.ignore_elements
-      ensure
-        File.delete file_path if File.exist? file_path
+      }
+
+      with_xlsx_file(file_path, **opts, after: compare_files) do |wb|
+        instance_exec(wb, tc, &block)
       end
     end
   end

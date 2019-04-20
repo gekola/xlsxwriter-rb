@@ -1,6 +1,6 @@
 #include <string.h>
 #include <ruby/util.h>
-#include "xlsxwriter.h"
+#include <xlsxwriter.h>
 #include "workbook.h"
 #include "workbook_properties.h"
 

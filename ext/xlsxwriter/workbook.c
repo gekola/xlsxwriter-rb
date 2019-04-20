@@ -1,7 +1,7 @@
 #include <string.h>
 #include <ruby.h>
 #include <ruby/thread.h>
-#include "xlsxwriter.h"
+#include <xlsxwriter.h>
 #include "chart.h"
 #include "format.h"
 #include "workbook.h"
@@ -353,23 +353,17 @@ value_to_lxw_datetime(VALUE val) {
     val = rb_funcall(val, i_to_time, 0);
   }
   VALUE time_a = rb_funcall(val, rb_intern("to_a"), 0);
-  static const VALUE idxs[6] = { INT2FIX(0), INT2FIX(1), INT2FIX(2), INT2FIX(3), INT2FIX(4), INT2FIX(5) };
   lxw_datetime res = {
-    .year  = NUM2INT(rb_ary_aref(1, idxs+5, time_a)),
-    .month = NUM2INT(rb_ary_aref(1, idxs+4, time_a)),
-    .day   = NUM2INT(rb_ary_aref(1, idxs+3, time_a)),
-    .hour  = NUM2INT(rb_ary_aref(1, idxs+2, time_a)),
-    .min   = NUM2INT(rb_ary_aref(1, idxs+1, time_a)),
-    .sec   = NUM2DBL(rb_ary_aref(1, idxs+0, time_a)) +
+    .year  = NUM2INT(rb_ary_entry(time_a, 5)),
+    .month = NUM2INT(rb_ary_entry(time_a, 4)),
+    .day   = NUM2INT(rb_ary_entry(time_a, 3)),
+    .hour  = NUM2INT(rb_ary_entry(time_a, 2)),
+    .min   = NUM2INT(rb_ary_entry(time_a, 1)),
+    .sec   = NUM2DBL(rb_ary_entry(time_a, 0)) +
              NUM2DBL(rb_funcall(val, rb_intern("subsec"), 0))
   };
 
   return res;
-}
-
-void
-handle_lxw_error(lxw_error err) {
-  return;
 }
 
 

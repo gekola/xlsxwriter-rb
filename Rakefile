@@ -7,7 +7,7 @@ spec = Gem::Specification.load('xlsxwriter.gemspec')
 Rake::ExtensionTask.new('xlsxwriter', spec) do |ext|
   ext.lib_dir = 'lib/xlsxwriter'
 end
-task compile: :patch_dep
+Rake::Task['compile'].prerequisites.unshift :patch_dep
 
 Gem::PackageTask.new(spec) do |pkg|
 end

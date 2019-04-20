@@ -3,6 +3,17 @@
 require_relative './xlsx-func-testcase'
 
 class TestEscapes < XlsxWriterTestCase
+  test 'escapes03' do |wb|
+    wb
+      .add_format(:bold, bold: true)
+      .add_format(:italic, italic: true)
+      .add_worksheet
+      .write_string('A1', 'Foo', :bold)
+      .write_string('A2', 'Bar', :italic)
+      .write_rich_string('A3', [['a'], ["b\"<>'c", :bold], ['defg']])
+
+  end
+
   test 'escapes04' do |wb|
     wb.add_worksheet
       .write_url(0, 'A', 'http://www.perl.com/?a=1&b=2')
