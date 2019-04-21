@@ -983,7 +983,8 @@ VALUE
 worksheet_set_h_pagebreaks_(VALUE self, VALUE val) {
   const size_t len = RARRAY_LEN(val);
   lxw_row_t rows[len+1];
-  for (size_t i = 0; i<len; ++i) {
+  size_t i;
+  for (i = 0; i<len; ++i) {
     rows[i] = NUM2INT(rb_ary_entry(val, i));
   }
   rows[len] = 0;
@@ -1003,7 +1004,8 @@ VALUE
 worksheet_set_v_pagebreaks_(VALUE self, VALUE val) {
   const size_t len = RARRAY_LEN(val);
   lxw_col_t cols[len+1];
-  for (size_t i = 0; i<len; ++i) {
+  size_t i;
+  for (i = 0; i<len; ++i) {
     cols[i] = value_to_col(rb_ary_entry(val, i));
   }
   cols[len] = 0;
@@ -1422,9 +1424,10 @@ worksheet_data_validation_(int argc, VALUE *argv, VALUE self) {
 #define parse_array_1(prefix)                                           \
     if (TYPE(val) == T_ARRAY) {                                         \
       int len = RARRAY_LEN(val);                                        \
+      int i;                                                            \
       data_validation.prefix##_list = malloc(sizeof(char *) * (len + 1)); \
       data_validation.prefix##_list[len] = NULL;                        \
-      for (int i = 0; i < len; ++i) {                                   \
+      for (i = 0; i < len; ++i) {                                       \
         data_validation.prefix##_list[i] = RSTRING_PTR(rb_ary_entry(val, i)); \
       }                                                                 \
     } else

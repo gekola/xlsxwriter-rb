@@ -221,7 +221,8 @@ chart_legend_delete_series_(VALUE self, VALUE series) {
   series = rb_check_array_type(series);
   const size_t len = RARRAY_LEN(series);
   int16_t series_arr[len+1];
-  for (size_t i = 0; i < len; ++i) {
+  size_t i;
+  for (i = 0; i < len; ++i) {
     series_arr[i] = NUM2INT(rb_check_to_int(rb_ary_entry(series, i)));
   }
   series_arr[len] = -1;

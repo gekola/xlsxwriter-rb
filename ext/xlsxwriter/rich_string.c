@@ -59,7 +59,8 @@ serialize_rich_string(VALUE rs) {
   lxw_rich_string_tuple **res = *(lxw_rich_string_tuple ***)ptr;
 
   lxw_rich_string_tuple *base_ptr = ((void *)*ptr + sizeof(lxw_rich_string_tuple *) * (len + 1));
-  for (int i = 0; i < len; ++i) {
+  int i;
+  for (i = 0; i < len; ++i) {
     VALUE part = rb_ary_entry(arr, i);
     VALUE text = rb_ary_entry(part, 0);
     VALUE format = rb_ary_entry(part, 1);

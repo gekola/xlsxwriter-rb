@@ -18,7 +18,7 @@ desc "Checkout xlsxwriter C library"
 task :patch_dep do
   patches = Dir["#{pwd}/dep_patches/*.patch"]
   chdir(DEP_DIR) do
-    if Dir.exist?('.git')
+    if File.exist?('.git')
       sh 'git reset --hard'
 
       patches.each do |patch|

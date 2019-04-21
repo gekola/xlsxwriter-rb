@@ -7,6 +7,7 @@
 #include "workbook.h"
 #include "workbook_properties.h"
 #include "worksheet.h"
+#include "xlsxwriter_ext.h"
 
 VALUE cWorkbook;
 
