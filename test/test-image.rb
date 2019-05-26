@@ -111,4 +111,19 @@ class TestImage < XlsxWriterTestCase
       .insert_image('E9', image_path('red.png'))
       .set_row(9, hide: true)
   end
+
+  test('image81', ref_file_name: 'image01') do |wb|
+    wb.add_worksheet
+      .insert_image_buffer('E9', File.binread(image_path('red.png')), description: 'red.png')
+  end
+
+  test 'image82' do |wb|
+    wb.add_worksheet
+      .insert_image_buffer('E9', File.binread(image_path('red.png')))
+  end
+
+  test('image83', ref_file_name: 'image02') do |wb|
+    wb.add_worksheet
+      .insert_image_buffer('D7', File.binread(image_path('yellow.png')), x_offset: 1, y_offset: 2, description: 'yellow.png')
+  end
 end

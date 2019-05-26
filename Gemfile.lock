@@ -10,7 +10,7 @@ GEM
     rake (12.3.2)
     rake-compiler (1.0.7)
       rake
-    rubyzip (1.2.2)
+    rubyzip (1.2.3)
     test-unit (3.3.3)
       power_assert
 

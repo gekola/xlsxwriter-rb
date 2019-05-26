@@ -625,6 +625,53 @@ worksheet_insert_image_(int argc, VALUE *argv, VALUE self) {
 }
 
 /*  call-seq:
+ *     ws.insert_image_buffer(cell, data, options) -> self
+ *     ws.insert_image_buffer(row, col, data, options) -> self
+ *
+ *  Adds data validation or limits user input to a list of values.
+ */
+VALUE
+worksheet_insert_image_buffer_(int argc, VALUE *argv, VALUE self) {
+  lxw_row_t row;
+  lxw_col_t col;
+  VALUE data = Qnil;
+  VALUE opts = Qnil;
+  lxw_image_options options;
+  char with_options = '\0';
+
+  rb_check_arity(argc, 2, 4);
+  int larg = extract_cell(argc, argv, &row, &col);
+
+  if (larg < argc) {
+    data = argv[larg];
+    ++larg;
+  } else {
+    rb_raise(rb_eArgError, "Cannot embed image without data");
+  }
+
+  if (larg < argc) {
+    opts = argv[larg];
+    ++larg;
+  }
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+
+  if (!NIL_P(opts)) {
+    options = val_to_lxw_image_options(opts, &with_options);
+  }
+
+  lxw_error error;
+  if (with_options) {
+    error = worksheet_insert_image_buffer_opt(ptr->worksheet, row, col, (const unsigned char *) RSTRING_PTR(data), RSTRING_LEN(data), &options);
+  } else {
+    error = worksheet_insert_image_buffer(ptr->worksheet, row, col, (const unsigned char *) RSTRING_PTR(data), RSTRING_LEN(data));
+  }
+  handle_lxw_error(error);
+
+  return self;
+}
+
+/*  call-seq:
  *     ws.insert_chart(cell, chart, opts = {}) -> self
  *     ws.insert_chart(row, col, chart, opts = {}) -> self
  *
@@ -1485,6 +1532,8 @@ worksheet_data_validation_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+// Helpers
+
 lxw_col_t
 value_to_col(VALUE value) {
   switch (TYPE(value)) {
@@ -1600,6 +1649,7 @@ val_to_lxw_image_options(VALUE opts, char *with_options) {
   SET_IMG_OPT("scale",    options.x_scale  = options.y_scale  = NUM2DBL(val));
   SET_IMG_OPT("x_scale",  options.x_scale  =                    NUM2DBL(val));
   SET_IMG_OPT("y_scale",                     options.y_scale  = NUM2DBL(val));
+  SET_IMG_OPT("description", options.description = StringValueCStr(val));
   return options;
 }
 #undef SET_IMG_OPT
@@ -1626,6 +1676,7 @@ init_xlsxwriter_worksheet() {
   rb_define_method(cWorksheet, "set_row", worksheet_set_row_, 2);
   rb_define_method(cWorksheet, "set_column", worksheet_set_column_, 3);
   rb_define_method(cWorksheet, "insert_image", worksheet_insert_image_, -1);
+  rb_define_method(cWorksheet, "insert_image_buffer", worksheet_insert_image_buffer_, -1);
   rb_define_method(cWorksheet, "insert_chart", worksheet_insert_chart_, -1);
   rb_define_method(cWorksheet, "merge_range", worksheet_merge_range_, -1);
   rb_define_method(cWorksheet, "autofilter", worksheet_autofilter_, -1);
