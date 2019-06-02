@@ -7,6 +7,13 @@ VALUE cChart;
 VALUE cChartSeries;
 VALUE cChartAxis;
 
+#define DEF_PROP_SETTER(type, field, value, ptr_field) VALUE type ## _set_ ## field ## _ (VALUE self, VALUE val) { \
+    struct type *ptr;                                                   \
+    Data_Get_Struct(self, struct type, ptr);                            \
+    type ## _set_ ## field (ptr->ptr_field, value);                     \
+    return val;                                                         \
+}
+
 
 VALUE
 chart_alloc(VALUE klass) {
@@ -233,38 +240,24 @@ chart_legend_delete_series_(VALUE self, VALUE series) {
   return self;
 }
 
-/*  call-seq: chart.style=(style) -> style
+/*  Document-method: XlsxWriter::Workbook::Chart#style=
+ *
+ *  call-seq: chart.style=(style) -> style
  *
  *  Sets the chart +style+ (integer from 1 to 48, default is 2).
  */
-VALUE
-chart_set_style_(VALUE self, VALUE style) {
-  struct chart *ptr;
-  Data_Get_Struct(self, struct chart, ptr);
+DEF_PROP_SETTER(chart, style, NUM2INT(rb_check_to_int(val)), chart)
 
-  chart_set_style(ptr->chart, NUM2INT(rb_check_to_int(style)));
-  return style;
-}
 
-/* :nodoc: */
-VALUE
-chart_set_rotation_(VALUE self, VALUE rotation) {
-  struct chart *ptr;
-  Data_Get_Struct(self, struct chart, ptr);
+/*  Document-method: XlsxWriter::Workbook::Chart#rotation=
+ *
+ */
+DEF_PROP_SETTER(chart, rotation, NUM2UINT(rb_check_to_int(val)), chart)
 
-  chart_set_rotation(ptr->chart, NUM2UINT(rb_check_to_int(rotation)));
-  return rotation;
-}
-
-/* :nodoc: */
-VALUE
-chart_set_hole_size_(VALUE self, VALUE size) {
-  struct chart *ptr;
-  Data_Get_Struct(self, struct chart, ptr);
-
-  chart_set_hole_size(ptr->chart, NUM2UINT(rb_check_to_int(size)));
-  return size;
-}
+/*  Document-method: XlsxWriter::Workbook::Chart#hole_size=
+ *
+ */
+DEF_PROP_SETTER(chart, hole_size, NUM2UINT(rb_check_to_int(val)), chart)
 
 
 /* :nodoc: */
@@ -302,18 +295,79 @@ chart_set_axis_id_2_(VALUE self, VALUE val) {
 }
 
 
-/*  call-seq: axis.name=(name) -> name
+/* Document-method: XlsxWriter::Workbook::Chart::Axis#name=
+ *
+ *  call-seq: axis.name=(name) -> name
  *
  *  Sets the chart axis +name+.
  */
-VALUE
-chart_axis_set_name_(VALUE self, VALUE val) {
-  struct chart_axis *ptr;
-  Data_Get_Struct(self, struct chart_axis, ptr);
+DEF_PROP_SETTER(chart_axis, name, StringValueCStr(val), axis)
 
-  chart_axis_set_name(ptr->axis, StringValueCStr(val));
-  return val;
-}
+/*  Document-method XlsxWriter::Workbook::Chart::Axis#interval_unit=
+ *
+ */
+DEF_PROP_SETTER(chart_axis, interval_unit, NUM2UINT(rb_check_to_int(val)), axis)
+
+/*  Document-method XlsxWriter::Workbook::Chart::Axis#interval_tick=
+ *
+ */
+DEF_PROP_SETTER(chart_axis, interval_tick, NUM2UINT(rb_check_to_int(val)), axis)
+
+/*  Document-method: XlsxWriter::Workbook::Chart::Axis#max=
+ *
+ *  call-seq: axis.max=(value) -> value
+ *
+ *  Sets the chart axis +max+ value.
+ */
+DEF_PROP_SETTER(chart_axis, max, NUM2DBL(rb_check_to_float(val)), axis)
+
+/*  Document-method: XlsxWriter::Workbook::Chart::Axis#min=
+ *
+ *  call-seq: axis.min=(value) -> value
+ *
+ *  Sets the chart axis +min+ value.
+ */
+DEF_PROP_SETTER(chart_axis, min, NUM2DBL(rb_check_to_float(val)), axis)
+
+/*  Document-method: XlsxWriter::Workbook::Chart::Axis#major_tick_mark=
+ *
+ */
+DEF_PROP_SETTER(chart_axis, major_tick_mark, NUM2UINT(rb_check_to_int(val)), axis)
+
+/*  Document-method: XlsxWriter::Workbook::Chart::Axis#minor_tick_mark=
+ *
+ */
+DEF_PROP_SETTER(chart_axis, minor_tick_mark, NUM2UINT(rb_check_to_int(val)), axis)
+
+/*  Document-method: XlsxWriter::Workbook::Chart::Axis#major_unit=
+ *
+ */
+DEF_PROP_SETTER(chart_axis, major_unit, NUM2DBL(rb_check_to_float(val)), axis)
+
+/*  Document-method: XlsxWriter::Workbook::Chart::Axis#minor_unit=
+ *
+ */
+DEF_PROP_SETTER(chart_axis, minor_unit, NUM2DBL(rb_check_to_float(val)), axis)
+
+/*  Document-method: XlsxWriter::Workbook::Chart::Axis#label_align=
+ *
+ */
+DEF_PROP_SETTER(chart_axis, label_align, NUM2UINT(rb_check_to_int(val)), axis)
+
+/*  Document-method: XlsxWriter::Workbook::Chart::Axis#label_position=
+ *
+ */
+DEF_PROP_SETTER(chart_axis, label_position, NUM2DBL(rb_check_to_float(val)), axis)
+
+/*  Document-method: XlsxWriter::Workbook::Chart::Axis#log_base=
+ *
+ */
+DEF_PROP_SETTER(chart_axis, log_base, NUM2DBL(rb_check_to_float(val)), axis)
+
+/*  Document-method: XlsxWriter::Workbook::Chart::Axis#num_format=
+ *
+ */
+DEF_PROP_SETTER(chart_axis, num_format, StringValueCStr(val), axis)
 
 /*  call-seq:
  *     axis.set_name_range(name, cell) -> self
@@ -392,6 +446,38 @@ chart_axis_set_fill_(VALUE self, VALUE opts) {
   return self;
 }
 
+/*  Document-method XlsxWriter::Workbook::Chart::Axis#position=
+ *
+ */
+DEF_PROP_SETTER(chart_axis, position, NUM2UINT(rb_check_to_int(val)), axis)
+
+/*  call-seq: axis.reverse = true
+ *
+ *  Interpret axis values/categories in reverse order.
+ */
+VALUE
+chart_axis_set_reverse_(VALUE self, VALUE p) {
+  struct chart_axis *ptr;
+  if (RTEST(p)) {
+    Data_Get_Struct(self, struct chart_axis, ptr);
+
+    chart_axis_set_reverse(ptr->axis);
+  }
+  return p;
+}
+
+VALUE
+chart_axis_set_source_linked_(VALUE self, VALUE val) {
+  struct chart_axis *ptr;
+
+  Data_Get_Struct(self, struct chart_axis, ptr);
+
+  ptr->axis->source_linked = NUM2UINT(rb_check_to_int(val));
+
+  return val;
+}
+
+
 /*  call-seq:
  *     series.set_categories(sheetname, range)
  *     series.set_categories(sheetname, cell_from, cell_to)
@@ -433,18 +519,13 @@ chart_series_set_values_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
-/*  call-seq: series.name=(name) -> name
+/*  Document-method: XlsxWriter::Workbook::Chart::Series#name=
+ *
+ *  call-seq: series.name=(name) -> name
  *
  *  Set chart series name.
  */
-VALUE
-chart_series_set_name_(VALUE self, VALUE name) {
-  struct chart_series *ptr;
-  Data_Get_Struct(self, struct chart_series, ptr);
-
-  chart_series_set_name(ptr->series, StringValueCStr(name));
-  return name;
-}
+DEF_PROP_SETTER(chart_series, name, StringValueCStr(val), series)
 
 /*  call-seq:
  *     series.set_name_range(name, cell) -> self
@@ -463,6 +544,17 @@ chart_series_set_name_range_(int argc, VALUE *argv, VALUE self) {
   Data_Get_Struct(self, struct chart_series, ptr);
   chart_series_set_name_range(ptr->series, str, row, col);
   return self;
+}
+
+VALUE
+chart_series_set_invert_if_negative_(VALUE self, VALUE p) {
+  struct chart_series *ptr;
+  if (RTEST(p)) {
+    Data_Get_Struct(self, struct chart_series, ptr);
+
+    chart_series_set_invert_if_negative(ptr->series);
+  }
+  return p;
 }
 
 
@@ -552,11 +644,26 @@ void init_xlsxwriter_chart() {
   rb_define_method(cChartAxis, "initialize", chart_axis_init, 2);
 
   rb_define_method(cChartAxis, "name=", chart_axis_set_name_, 1);
+  rb_define_method(cChartAxis, "interval_unit=", chart_axis_set_interval_unit_, 1);
+  rb_define_method(cChartAxis, "interval_tick=", chart_axis_set_interval_tick_, 1);
+  rb_define_method(cChartAxis, "max=", chart_axis_set_max_, 1);
+  rb_define_method(cChartAxis, "min=", chart_axis_set_min_, 1);
+  rb_define_method(cChartAxis, "major_tick_mark=", chart_axis_set_major_tick_mark_, 1);
+  rb_define_method(cChartAxis, "minor_tick_mark=", chart_axis_set_minor_tick_mark_, 1);
+  rb_define_method(cChartAxis, "major_unit=", chart_axis_set_major_unit_, 1);
+  rb_define_method(cChartAxis, "minor_unit=", chart_axis_set_minor_unit_, 1);
+  rb_define_method(cChartAxis, "label_align=", chart_axis_set_label_align_, 1);
+  rb_define_method(cChartAxis, "label_position=", chart_axis_set_label_position_, 1);
+  rb_define_method(cChartAxis, "log_base=", chart_axis_set_log_base_, 1);
+  rb_define_method(cChartAxis, "num_format=", chart_axis_set_num_format_, 1);
   rb_define_method(cChartAxis, "set_name_range", chart_axis_set_name_range_, -1);
   rb_define_method(cChartAxis, "set_name_font", chart_axis_set_name_font_, 1);
   rb_define_method(cChartAxis, "set_num_font", chart_axis_set_num_font_, 1);
   rb_define_method(cChartAxis, "set_line", chart_axis_set_line_, 1);
   rb_define_method(cChartAxis, "set_fill", chart_axis_set_fill_, 1);
+  rb_define_method(cChartAxis, "position=", chart_axis_set_position_, 1);
+  rb_define_method(cChartAxis, "reverse=", chart_axis_set_reverse_, 1);
+  rb_define_method(cChartAxis, "source_linked=", chart_axis_set_source_linked_, 1);
 
   rb_define_alloc_func(cChartSeries, chart_series_alloc);
   rb_define_method(cChartSeries, "initialize", chart_series_init, -1);
@@ -565,6 +672,7 @@ void init_xlsxwriter_chart() {
   rb_define_method(cChartSeries, "set_values", chart_series_set_values_, -1);
   rb_define_method(cChartSeries, "name=", chart_series_set_name_, 1);
   rb_define_method(cChartSeries, "set_name_range", chart_series_set_name_range_, -1);
+  rb_define_method(cChartSeries, "invert_if_negative=", chart_series_set_invert_if_negative_, 1);
 
 #define MAP_CHART_CONST(name) rb_define_const(cChart, #name, INT2NUM(LXW_CHART_##name))
   MAP_CHART_CONST(NONE);
@@ -602,7 +710,25 @@ void init_xlsxwriter_chart() {
   MAP_CHART_CONST(AXIS_LABEL_ALIGN_CENTER);
   MAP_CHART_CONST(AXIS_LABEL_ALIGN_LEFT);
   MAP_CHART_CONST(AXIS_LABEL_ALIGN_RIGHT);
-
-
 #undef MAP_CHART_CONST
+
+#define MAP_CHART_AXIS_CONST(name) rb_define_const(cChartAxis, #name, INT2NUM(LXW_CHART_AXIS_##name))
+  MAP_CHART_AXIS_CONST(LABEL_ALIGN_CENTER);
+  MAP_CHART_AXIS_CONST(LABEL_ALIGN_LEFT);
+  MAP_CHART_AXIS_CONST(LABEL_ALIGN_RIGHT);
+
+  MAP_CHART_AXIS_CONST(LABEL_POSITION_NEXT_TO);
+  MAP_CHART_AXIS_CONST(LABEL_POSITION_HIGH);
+  MAP_CHART_AXIS_CONST(LABEL_POSITION_LOW);
+  MAP_CHART_AXIS_CONST(LABEL_POSITION_NONE);
+
+  MAP_CHART_AXIS_CONST(POSITION_BETWEEN);
+  MAP_CHART_AXIS_CONST(POSITION_ON_TICK);
+
+  MAP_CHART_AXIS_CONST(TICK_MARK_DEFAULT);
+  MAP_CHART_AXIS_CONST(TICK_MARK_NONE);
+  MAP_CHART_AXIS_CONST(TICK_MARK_INSIDE);
+  MAP_CHART_AXIS_CONST(TICK_MARK_OUTSIDE);
+  MAP_CHART_AXIS_CONST(TICK_MARK_CROSSING);
+#undef MAP_CHART_AXIS_CONST
 }
