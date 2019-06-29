@@ -31,14 +31,17 @@ workbook_alloc(VALUE klass) {
 }
 
 /*  call-seq:
- *     XlsxWriter::Workbook.new(path, constant_memory: false, tmpdir: nil) -> workbook
- *     XlsxWriter::Workbook.new(path, constant_memory: false, tmpdir: nil) { |wb| block } -> nil
- *     XlsxWriter::Workbook.open(path, constant_memory: false, tmpdir: nil) { |wb| block } -> nil
+ *     XlsxWriter::Workbook.new(path, constant_memory: false, tmpdir: nil, use_zip64: false) -> workbook
+ *     XlsxWriter::Workbook.new(path, constant_memory: false, tmpdir: nil, use_zip64: false) { |wb| block } -> nil
+ *     XlsxWriter::Workbook.open(path, constant_memory: false, tmpdir: nil, use_zip64: false) { |wb| block } -> nil
  *
  *  Creates a new Xlsx workbook in file +path+ and returns a new Workbook object.
  *
  *  If +constant_memory+ is set to true workbook data is stored in temporary files
  *  in +tmpdir+, considerably reducing memory consumption for large documents.
+ *
+ *  If +use_zip64+ is set to truthy value zip64 extensions are enabled for the resulting xlsx file. It allows
+ *  for files in the archive to have size >4GB.
  *
  *    XlsxWriter::Workbook.open('/tmp/test.xlsx', constant_memory: true) do |wb|
  *      # ... populate the workbook with data ...
@@ -61,7 +64,8 @@ workbook_init(int argc, VALUE *argv, VALUE self) {
   struct workbook *ptr;
   lxw_workbook_options options = {
     .constant_memory = 0,
-    .tmpdir = NULL
+    .tmpdir = NULL,
+    .use_zip64 = 0
   };
 
   if (argc < 1 || argc > 2) {
@@ -74,6 +78,10 @@ workbook_init(int argc, VALUE *argv, VALUE self) {
       VALUE tmpdir = rb_hash_aref(argv[1], ID2SYM(rb_intern("tmpdir")));
       if (!NIL_P(tmpdir))
         options.tmpdir = RSTRING_PTR(tmpdir);
+    }
+    VALUE use_zip64_ = rb_hash_aref(argv[1], ID2SYM(rb_intern("use_zip64")));
+    if (!NIL_P(use_zip64_) && use_zip64_) {
+      options.use_zip64 = 1;
     }
   }
 
@@ -274,6 +282,24 @@ workbook_add_chart_(VALUE self, VALUE type) {
   return chart;
 }
 
+/*  call-seq:
+ *     wb.add_vba_project(filename)
+ *
+ *  Adds a vba project to the workbook (has to be extracted from a xlsm file).
+ *  Only one file per workbook is allowed. Documents with vba projects should have
+ *  extension "xlsm" rather than "xlsx" to avoid reader/editor software warnings.
+ */
+VALUE
+workbook_add_vba_project_(VALUE self, VALUE filename) {
+  struct workbook *ptr;
+  Data_Get_Struct(self, struct workbook, ptr);
+
+  lxw_error err = workbook_add_vba_project(ptr->workbook, StringValueCStr(filename));
+  handle_lxw_error(err);
+
+  return self;
+}
+
 /* :nodoc: */
 VALUE
 workbook_set_default_xf_indices_(VALUE self) {
@@ -281,6 +307,22 @@ workbook_set_default_xf_indices_(VALUE self) {
   Data_Get_Struct(self, struct workbook, ptr);
   lxw_workbook_set_default_xf_indices(ptr->workbook);
   return self;
+}
+
+/*  call-seq:
+ *     wb.vba_name = name
+ *
+ *  Set the VBA name for the workbook.
+ */
+VALUE
+workbook_set_vba_name_(VALUE self, VALUE name) {
+  struct workbook *ptr;
+  Data_Get_Struct(self, struct workbook, ptr);
+
+  lxw_error err = workbook_set_vba_name(ptr->workbook, StringValueCStr(name));
+  handle_lxw_error(err);
+
+  return name;
 }
 
 /*  call-seq: wb.properties -> wb_properties
@@ -382,14 +424,16 @@ init_xlsxwriter_workbook() {
   rb_define_alias(rb_singleton_class(cWorkbook), "open", "new");
   rb_define_method(cWorkbook, "initialize", workbook_init, -1);
   rb_define_method(cWorkbook, "close", workbook_release, 0);
-  rb_define_method(cWorkbook, "add_worksheet", workbook_add_worksheet_, -1);
-  rb_define_method(cWorkbook, "add_format", workbook_add_format_, 2);
   rb_define_method(cWorkbook, "add_chart", workbook_add_chart_, 1);
-  rb_define_method(cWorkbook, "set_default_xf_indices", workbook_set_default_xf_indices_, 0);
-  rb_define_method(cWorkbook, "properties", workbook_properties_, 0);
+  rb_define_method(cWorkbook, "add_format", workbook_add_format_, 2);
+  rb_define_method(cWorkbook, "add_vba_project", workbook_add_vba_project_, 1);
+  rb_define_method(cWorkbook, "add_worksheet", workbook_add_worksheet_, -1);
   rb_define_method(cWorkbook, "define_name", workbook_define_name_, 2);
+  rb_define_method(cWorkbook, "properties", workbook_properties_, 0);
+  rb_define_method(cWorkbook, "set_default_xf_indices", workbook_set_default_xf_indices_, 0);
   rb_define_method(cWorkbook, "validate_sheet_name", workbook_validate_sheet_name_, 1);
   rb_define_method(cWorkbook, "validate_worksheet_name", workbook_validate_sheet_name_, 1);
+  rb_define_method(cWorkbook, "vba_name=", workbook_set_vba_name_, 1);
 
   /*
    * This attribute contains effective font widths used for automatic column

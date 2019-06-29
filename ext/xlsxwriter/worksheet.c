@@ -1532,6 +1532,21 @@ worksheet_data_validation_(int argc, VALUE *argv, VALUE self) {
   return self;
 }
 
+/*  call-seq: wb.vba_name = name
+ *
+ *  Set the VBA name for the worksheet.
+ */
+VALUE
+worksheet_set_vba_name_(VALUE self, VALUE name) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+
+  lxw_error err = worksheet_set_vba_name(ptr->worksheet, StringValueCStr(name));
+  handle_lxw_error(err);
+
+  return name;
+}
+
 // Helpers
 
 lxw_col_t
@@ -1719,6 +1734,8 @@ init_xlsxwriter_worksheet() {
   rb_define_method(cWorksheet, "vertical_dpi=", worksheet_set_vertical_dpi_, 1);
 
   rb_define_method(cWorksheet, "add_data_validation", worksheet_data_validation_, -1);
+  rb_define_method(cWorksheet, "vba_name=", worksheet_set_vba_name_, 1);
+
   rb_define_private_method(cWorksheet, "extract_column", rb_extract_col, 1);
 
 #define MAP_LXW_WH_CONST(name, val_name) rb_define_const(cWorksheet, #name, INT2NUM(LXW_##val_name))

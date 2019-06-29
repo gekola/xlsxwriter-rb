@@ -20,7 +20,8 @@ class XlsxWriterTestCase < Test::Unit::TestCase
     define_method(:"test_#{name}") do
       file_path = "tmp/#{name}.xlsx"
       ref_name = opts && opts.delete(:ref_file_name) || name
-      ref_file_path = "ext/xlsxwriter/libxlsxwriter/test/functional/xlsx_files/#{ref_name}.xlsx"
+      ref_file_path = "ext/xlsxwriter/libxlsxwriter/test/functional/xlsx_files/#{ref_name}"
+      ref_file_path += '.xlsx' if File.extname(ref_file_path) == ''
       tc = XlsxWriterTestCaseConfig.new
 
       compare_files = proc {
