@@ -9,11 +9,11 @@ struct chart {
 };
 
 struct chart_axis {
-  lxw_chart_axis *axis;
+  lxw_chart_axis *chart_axis;
 };
 
 struct chart_series {
-  lxw_chart_series *series;
+  lxw_chart_series *chart_series;
 };
 
 lxw_chart_fill val_to_lxw_chart_fill(VALUE opts);

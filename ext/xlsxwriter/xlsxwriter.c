@@ -1,6 +1,7 @@
 #include <ruby.h>
 #include <xlsxwriter.h>
 #include "chart.h"
+#include "chartsheet.h"
 #include "format.h"
 #include "rich_string.h"
 #include "workbook.h"
@@ -41,5 +42,6 @@ void Init_xlsxwriter() {
   init_xlsxwriter_format();
   init_xlsxwriter_worksheet();
   init_xlsxwriter_chart();
+  init_xlsxwriter_chartsheet();
   init_xlsxwriter_rich_string();
 }

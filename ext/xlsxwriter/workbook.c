@@ -2,7 +2,10 @@
 #include <ruby.h>
 #include <ruby/thread.h>
 #include <xlsxwriter.h>
+
 #include "chart.h"
+#include "chartsheet.h"
+#include "common.h"
 #include "format.h"
 #include "workbook.h"
 #include "workbook_properties.h"
@@ -198,6 +201,38 @@ workbook_add_worksheet_(int argc, VALUE *argv, VALUE self) {
 }
 
 /* call-seq:
+ *    wb.add_chartsheet([name]) -> cs
+ *    wb.add_chartsheet([name]) { |ws| block } -> obj
+ *
+ * Adds a chartsheet named +name+ to the workbook.
+ *
+ * If a block is passed, the last statement is returned.
+ *
+ *    wb.add_chartsheet('Cool chart') do |cs|
+ *      cs.chart = chart
+ *    end
+ */
+VALUE
+workbook_add_chartsheet_(int argc, VALUE *argv, VALUE self) {
+  VALUE chartsheet = Qnil;
+
+  rb_check_arity(argc, 0, 1);
+
+  struct workbook *ptr;
+  Data_Get_Struct(self, struct workbook, ptr);
+  if (ptr->workbook) {
+    chartsheet = rb_funcall(cChartsheet, rb_intern("new"), argc + 1, self, argv[0]);
+  }
+
+  if (rb_block_given_p()) {
+    VALUE res = rb_yield(chartsheet);
+    return res;
+  }
+
+  return chartsheet;
+}
+
+/* call-seq:
  *    wb.add_format(key, definition) -> wb
  *
  * Adds a format identified as +key+ with parameters set from +definition+ to the
@@ -210,7 +245,7 @@ workbook_add_worksheet_(int argc, VALUE *argv, VALUE self) {
  * :font_color:: Text color.
  * :bold, :italic, underline :: Bold, italic, underlined text.
  * :font_strikeout:: Striked out text.
- * :font_script:: Superscript (XlsxWrtiter::Format::FONT_SUPERSCRIPT) or subscript (XlsxWriter::Format::FONT_SUBSCRIPT).
+ * :font_script:: Superscript (XlsxWriter::Format::FONT_SUPERSCRIPT) or subscript (XlsxWriter::Format::FONT_SUBSCRIPT).
  * :num_format:: Defines numerical format with mask, like <code>'d mmm yyyy'</code>
  *               or <code>'#,##0.00'</code>.
  * :num_format_index:: Defines numerical format from special {pre-defined set}[https://libxlsxwriter.github.io/format_8h.html#a688aa42bcc703d17e125d9a34c721872].
@@ -291,12 +326,7 @@ workbook_add_chart_(VALUE self, VALUE type) {
  */
 VALUE
 workbook_add_vba_project_(VALUE self, VALUE filename) {
-  struct workbook *ptr;
-  Data_Get_Struct(self, struct workbook, ptr);
-
-  lxw_error err = workbook_add_vba_project(ptr->workbook, StringValueCStr(filename));
-  handle_lxw_error(err);
-
+  LXW_ERR_RESULT_CALL(workbook, add_vba_project, StringValueCStr(filename));
   return self;
 }
 
@@ -316,12 +346,7 @@ workbook_set_default_xf_indices_(VALUE self) {
  */
 VALUE
 workbook_set_vba_name_(VALUE self, VALUE name) {
-  struct workbook *ptr;
-  Data_Get_Struct(self, struct workbook, ptr);
-
-  lxw_error err = workbook_set_vba_name(ptr->workbook, StringValueCStr(name));
-  handle_lxw_error(err);
-
+  LXW_ERR_RESULT_CALL(workbook, set_vba_name, StringValueCStr(name));
   return name;
 }
 
@@ -346,9 +371,8 @@ workbook_properties_(VALUE self) {
  */
 VALUE
 workbook_define_name_(VALUE self, VALUE name, VALUE formula) {
-  struct workbook *ptr;
-  Data_Get_Struct(self, struct workbook, ptr);
-  workbook_define_name(ptr->workbook, StringValueCStr(name), StringValueCStr(formula));
+  LXW_ERR_RESULT_CALL(workbook, define_name, StringValueCStr(name), StringValueCStr(formula));
+
   return self;
 }
 
@@ -362,11 +386,7 @@ workbook_define_name_(VALUE self, VALUE name, VALUE formula) {
  */
 VALUE
 workbook_validate_sheet_name_(VALUE self, VALUE name) {
-  struct workbook *ptr;
-  lxw_error err;
-  Data_Get_Struct(self, struct workbook, ptr);
-  err = workbook_validate_sheet_name(ptr->workbook, StringValueCStr(name));
-  handle_lxw_error(err);
+  LXW_ERR_RESULT_CALL(workbook, validate_sheet_name, StringValueCStr(name));
   return Qtrue;
 }
 
@@ -428,6 +448,7 @@ init_xlsxwriter_workbook() {
   rb_define_method(cWorkbook, "add_format", workbook_add_format_, 2);
   rb_define_method(cWorkbook, "add_vba_project", workbook_add_vba_project_, 1);
   rb_define_method(cWorkbook, "add_worksheet", workbook_add_worksheet_, -1);
+  rb_define_method(cWorkbook, "add_chartsheet", workbook_add_chartsheet_, -1);
   rb_define_method(cWorkbook, "define_name", workbook_define_name_, 2);
   rb_define_method(cWorkbook, "properties", workbook_properties_, 0);
   rb_define_method(cWorkbook, "set_default_xf_indices", workbook_set_default_xf_indices_, 0);

@@ -1,4 +1,5 @@
 #include "chart.h"
+#include "common.h"
 #include "rich_string.h"
 #include "worksheet.h"
 #include "workbook.h"
@@ -10,8 +11,7 @@ void worksheet_free(void *p);
 
 
 VALUE
-worksheet_alloc(VALUE klass)
-{
+worksheet_alloc(VALUE klass) {
   VALUE obj;
   struct worksheet *ptr;
 
@@ -33,9 +33,8 @@ worksheet_init(int argc, VALUE *argv, VALUE self) {
 
   Data_Get_Struct(self, struct worksheet, ptr);
 
-  if (argc > 2 || argc < 1) {
-    rb_raise(rb_eArgError, "wrong number of arguments");
-  } else if (argc == 2) {
+  rb_check_arity(argc, 1, 2);
+  if (argc == 2) {
     switch (TYPE(argv[1])) {
     case T_HASH:
       opts = argv[1];
@@ -120,11 +119,9 @@ worksheet_write_string_(int argc, VALUE *argv, VALUE self) {
   }
 
   const char *str = StringValueCStr(value);
-  struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_write_string(ptr->worksheet, row, col, str, format);
+  LXW_NO_RESULT_CALL(worksheet, write_string, row, col, str, format);
   return self;
 }
 
@@ -155,11 +152,9 @@ worksheet_write_number_(int argc, VALUE *argv, VALUE self) {
   }
 
   const double num = NUM2DBL(value);
-  struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_write_number(ptr->worksheet, row, col, num, format);
+  LXW_NO_RESULT_CALL(worksheet, write_number, row, col, num, format);
   return self;
 }
 
@@ -190,11 +185,9 @@ worksheet_write_formula_(int argc, VALUE *argv, VALUE self) {
   }
 
   const char *str = RSTRING_PTR(value);
-  struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_write_formula(ptr->worksheet, row, col, str, format);
+  LXW_NO_RESULT_CALL(worksheet, write_formula, row, col, str, format);
   return self;
 }
 
@@ -226,11 +219,9 @@ VALUE worksheet_write_array_formula_(int argc, VALUE *argv, VALUE self) {
     ++larg;
   }
 
-  struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_write_array_formula(ptr->worksheet, row_from, col_from, row_to, col_to, str, format);
+  LXW_NO_RESULT_CALL(worksheet, write_array_formula, row_from, col_from, row_to, col_to, str, format);
   return self;
 }
 
@@ -261,11 +252,9 @@ worksheet_write_datetime_(int argc, VALUE *argv, VALUE self) {
   }
 
   struct lxw_datetime datetime = value_to_lxw_datetime(value);
-  struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_write_datetime(ptr->worksheet, row, col, &datetime, format);
+  LXW_NO_RESULT_CALL(worksheet, write_datetime, row, col, &datetime, format);
   return self;
 }
 
@@ -360,11 +349,9 @@ worksheet_write_boolean_(int argc, VALUE *argv, VALUE self) {
     ++larg;
   }
 
-  struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_write_boolean(ptr->worksheet, row, col, bool_value, format);
+  LXW_NO_RESULT_CALL(worksheet, write_boolean, row, col, bool_value, format);
   return self;
 }
 
@@ -388,11 +375,9 @@ worksheet_write_blank_(int argc, VALUE *argv, VALUE self) {
     ++larg;
   }
 
-  struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_write_blank(ptr->worksheet, row, col, format);
+  LXW_NO_RESULT_CALL(worksheet, write_blank, row, col, format);
   return self;
 }
 
@@ -429,11 +414,9 @@ worksheet_write_formula_num_(int argc, VALUE *argv, VALUE self) {
   }
 
   const char *str = RSTRING_PTR(formula);
-  struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_write_formula_num(ptr->worksheet, row, col, str, format, NUM2DBL(value));
+  LXW_NO_RESULT_CALL(worksheet, write_formula_num, row, col, str, format, NUM2DBL(value));
   return self;
 }
 
@@ -473,13 +456,10 @@ worksheet_write_rich_string_(int argc, VALUE *argv, VALUE self) {
     rb_raise(rb_eArgError, "No value specified");
   }
 
-  struct worksheet *ptr;
   lxw_format *format = workbook_get_format(workbook, format_key);
   lxw_rich_string_tuple **rich_string = serialize_rich_string(value);
   if (rich_string) {
-    Data_Get_Struct(self, struct worksheet, ptr);
-    lxw_error err = worksheet_write_rich_string(ptr->worksheet, row, col, rich_string, format);
-    handle_lxw_error(err);
+    LXW_ERR_RESULT_CALL(worksheet, write_rich_string, row, col, rich_string, format);
   }
   return self;
 }
@@ -752,10 +732,7 @@ worksheet_merge_range_(int argc, VALUE *argv, VALUE self) {
     ++larg;
   }
 
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-
-  worksheet_merge_range(ptr->worksheet, row1, col1, row2, col2, str, format);
+  LXW_NO_RESULT_CALL(worksheet, merge_range, row1, col1, row2, col2, str, format);
   return self;
 }
 
@@ -778,10 +755,7 @@ worksheet_autofilter_(int argc, VALUE *argv, VALUE self) {
   rb_check_arity(argc, 1, 4);
   extract_range(argc, argv, &row_from, &col_from, &row_to, &col_to);
 
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-
-  worksheet_autofilter(ptr->worksheet, row_from, col_from, row_to, col_to);
+  LXW_NO_RESULT_CALL(worksheet, autofilter, row_from, col_from, row_to, col_to);
   return self;
 }
 
@@ -791,21 +765,17 @@ worksheet_autofilter_(int argc, VALUE *argv, VALUE self) {
  */
 VALUE
 worksheet_activate_(VALUE self) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_activate(ptr->worksheet);
+  LXW_NO_RESULT_CALL(worksheet, activate);
   return self;
 }
 
 /*  call-seq: ws.select -> self
  *
- *  Set the worksheet to be selected on openong the workbook.
+ *  Set the worksheet to be selected on opening the workbook.
  */
 VALUE
 worksheet_select_(VALUE self) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_select(ptr->worksheet);
+  LXW_NO_RESULT_CALL(worksheet, select);
   return self;
 }
 
@@ -815,9 +785,7 @@ worksheet_select_(VALUE self) {
  */
 VALUE
 worksheet_hide_(VALUE self) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_hide(ptr->worksheet);
+  LXW_NO_RESULT_CALL(worksheet, hide);
   return self;
 }
 
@@ -828,9 +796,7 @@ worksheet_hide_(VALUE self) {
  */
 VALUE
 worksheet_set_first_sheet_(VALUE self) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_set_first_sheet(ptr->worksheet);
+  LXW_NO_RESULT_CALL(worksheet, set_first_sheet);
   return self;
 }
 
@@ -876,9 +842,7 @@ worksheet_freeze_panes_(int argc, VALUE *argv, VALUE self) {
  */
 VALUE
 worksheet_split_panes_(VALUE self, VALUE vertical, VALUE horizontal) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_split_panes(ptr->worksheet, NUM2DBL(vertical), NUM2DBL(horizontal));
+  LXW_NO_RESULT_CALL(worksheet, split_panes, NUM2DBL(vertical), NUM2DBL(horizontal));
   return self;
 }
 
@@ -901,10 +865,7 @@ worksheet_set_selection_(int argc, VALUE *argv, VALUE self) {
   rb_check_arity(argc, 1, 4);
   extract_range(argc, argv, &row_from, &col_from, &row_to, &col_to);
 
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-
-  worksheet_set_selection(ptr->worksheet, row_from, col_from, row_to, col_to);
+  LXW_NO_RESULT_CALL(worksheet, set_selection, row_from, col_from, row_to, col_to);
   return self;
 }
 
@@ -914,9 +875,7 @@ worksheet_set_selection_(int argc, VALUE *argv, VALUE self) {
  */
 VALUE
 worksheet_set_landscape_(VALUE self) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_set_landscape(ptr->worksheet);
+  LXW_NO_RESULT_CALL(worksheet, set_landscape);
   return self;
 }
 
@@ -926,9 +885,7 @@ worksheet_set_landscape_(VALUE self) {
  */
 VALUE
 worksheet_set_portrait_(VALUE self) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_set_portrait(ptr->worksheet);
+  LXW_NO_RESULT_CALL(worksheet, set_portrait);
   return self;
 }
 
@@ -938,9 +895,7 @@ worksheet_set_portrait_(VALUE self) {
  */
 VALUE
 worksheet_set_page_view_(VALUE self) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_set_page_view(ptr->worksheet);
+  LXW_NO_RESULT_CALL(worksheet, set_page_view);
   return self;
 }
 
@@ -950,22 +905,18 @@ worksheet_set_page_view_(VALUE self) {
  */
 VALUE
 worksheet_set_paper_(VALUE self, VALUE paper_type) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_set_paper(ptr->worksheet, NUM2INT(paper_type));
+  LXW_NO_RESULT_CALL(worksheet, set_paper, NUM2INT(paper_type));
   return self;
 }
 
 /* Sets the worksheet margins (Numeric) for the printed page. */
 VALUE
 worksheet_set_margins_(VALUE self, VALUE left, VALUE right, VALUE top, VALUE bottom) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_set_margins(ptr->worksheet, NUM2DBL(left), NUM2DBL(right), NUM2DBL(top), NUM2DBL(bottom));
+  LXW_NO_RESULT_CALL(worksheet, set_margins, NUM2DBL(left), NUM2DBL(right), NUM2DBL(top), NUM2DBL(bottom));
   return self;
 }
 
-/*  call-seq: ws.set_header(text, opts) -> self
+/*  call-seq: ws.set_header(text[, opts]) -> self
  *
  *  See {libxlsxwriter doc}[https://libxlsxwriter.github.io/worksheet_8h.html#a4070c24ed5107f33e94f30a1bf865ba9]
  *  for the +text+ control characters.
@@ -973,24 +924,18 @@ worksheet_set_margins_(VALUE self, VALUE left, VALUE right, VALUE top, VALUE bot
  *  Currently the only supported option is +:margin+ (Numeric).
  */
 VALUE
-worksheet_set_header_(VALUE self, VALUE val, VALUE opts) {
-  const char *str = StringValueCStr(val);
-  lxw_header_footer_options options = { .margin = 0.0 };
-  char with_options = '\0';
-  if (!NIL_P(opts)) {
-    VALUE margin = rb_hash_aref(opts, ID2SYM(rb_intern("margin")));
-    if (!NIL_P(margin)) {
-      with_options = '\1';
-      options.margin = NUM2DBL(margin);
-    }
-  }
+worksheet_set_header_(int argc, VALUE *argv, VALUE self) {
+  rb_check_arity(argc, 1, 2);
+  struct _header_options ho = _extract_header_options(argc, argv);
   struct worksheet *ptr;
   Data_Get_Struct(self, struct worksheet, ptr);
-  if (with_options) {
-    worksheet_set_header(ptr->worksheet, str);
+  lxw_error err;
+  if (!ho.with_options) {
+    err = worksheet_set_header(ptr->worksheet, ho.str);
   } else {
-    worksheet_set_header_opt(ptr->worksheet, str, &options);
+    err = worksheet_set_header_opt(ptr->worksheet, ho.str, &ho.options);
   }
+  handle_lxw_error(err);
   return self;
 }
 
@@ -999,24 +944,18 @@ worksheet_set_header_(VALUE self, VALUE val, VALUE opts) {
  *  See #set_header for params description.
  */
 VALUE
-worksheet_set_footer_(VALUE self, VALUE val, VALUE opts) {
-  const char *str = StringValueCStr(val);
-  lxw_header_footer_options options = { .margin = 0.0 };
-  char with_options = '\0';
-  if (!NIL_P(opts)) {
-    VALUE margin = rb_hash_aref(opts, ID2SYM(rb_intern("margin")));
-    if (!NIL_P(margin)) {
-      with_options = '\1';
-      options.margin = NUM2DBL(margin);
-    }
-  }
+worksheet_set_footer_(int argc, VALUE *argv, VALUE self) {
   struct worksheet *ptr;
+  rb_check_arity(argc, 1, 2);
+  struct _header_options ho = _extract_header_options(argc, argv);
   Data_Get_Struct(self, struct worksheet, ptr);
-  if (with_options) {
-    worksheet_set_footer(ptr->worksheet, str);
+  lxw_error err;
+  if (!ho.with_options) {
+    err = worksheet_set_footer(ptr->worksheet, ho.str);
   } else {
-    worksheet_set_footer_opt(ptr->worksheet, str, &options);
+    err = worksheet_set_footer_opt(ptr->worksheet, ho.str, &ho.options);
   }
+  handle_lxw_error(err);
   return self;
 }
 
@@ -1035,9 +974,7 @@ worksheet_set_h_pagebreaks_(VALUE self, VALUE val) {
     rows[i] = NUM2INT(rb_ary_entry(val, i));
   }
   rows[len] = 0;
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_set_h_pagebreaks(ptr->worksheet, rows);
+  LXW_NO_RESULT_CALL(worksheet, set_h_pagebreaks, rows);
   return val;
 }
 
@@ -1056,18 +993,14 @@ worksheet_set_v_pagebreaks_(VALUE self, VALUE val) {
     cols[i] = value_to_col(rb_ary_entry(val, i));
   }
   cols[len] = 0;
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_set_v_pagebreaks(ptr->worksheet, cols);
+  LXW_NO_RESULT_CALL(worksheet, set_v_pagebreaks, cols);
   return val;
 }
 
 /* Changes the default print direction */
 VALUE
 worksheet_print_across_(VALUE self) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_print_across(ptr->worksheet);
+  LXW_NO_RESULT_CALL(worksheet, print_across);
   return self;
 }
 
@@ -1077,9 +1010,7 @@ worksheet_print_across_(VALUE self) {
  */
 VALUE
 worksheet_set_zoom_(VALUE self, VALUE val) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_set_zoom(ptr->worksheet, NUM2INT(val));
+  LXW_NO_RESULT_CALL(worksheet, set_zoom, NUM2INT(val));
   return self;
 }
 
@@ -1091,38 +1022,28 @@ worksheet_set_zoom_(VALUE self, VALUE val) {
  */
 VALUE
 worksheet_gridlines_(VALUE self, VALUE value) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-
-  worksheet_gridlines(ptr->worksheet, NUM2INT(value));
-
+  LXW_NO_RESULT_CALL(worksheet, gridlines, NUM2INT(value));
   return value;
 }
 
 /* Center the worksheet data horizontally between the margins on the printed page */
 VALUE
 worksheet_center_horizontally_(VALUE self){
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_center_horizontally(ptr->worksheet);
+  LXW_NO_RESULT_CALL(worksheet, center_horizontally);
   return self;
 }
 
 /* Center the worksheet data vertically between the margins on the printed page */
 VALUE
 worksheet_center_vertically_(VALUE self) {
-    struct worksheet *ptr;
-    Data_Get_Struct(self, struct worksheet, ptr);
-    worksheet_center_vertically(ptr->worksheet);
-    return self;
+  LXW_NO_RESULT_CALL(worksheet, center_vertically);
+  return self;
 }
 
 /* Print rows and column header (wich is disabled by default). */
 VALUE
 worksheet_print_row_col_headers_(VALUE self) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_print_row_col_headers(ptr->worksheet);
+  LXW_NO_RESULT_CALL(worksheet, print_row_col_headers);
   return self;
 }
 
@@ -1132,9 +1053,7 @@ worksheet_print_row_col_headers_(VALUE self) {
  */
 VALUE
 worksheet_repeat_rows_(VALUE self, VALUE row_from, VALUE row_to) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_repeat_rows(ptr->worksheet, NUM2INT(row_from), NUM2INT(row_to));
+  LXW_NO_RESULT_CALL(worksheet, repeat_rows, NUM2INT(row_from), NUM2INT(row_to));
   return self;
 }
 
@@ -1144,9 +1063,7 @@ worksheet_repeat_rows_(VALUE self, VALUE row_from, VALUE row_to) {
  */
 VALUE
 worksheet_repeat_columns_(VALUE self, VALUE col_from, VALUE col_to) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_repeat_columns(ptr->worksheet, value_to_col(col_from), value_to_col(col_to));
+  LXW_NO_RESULT_CALL(worksheet, repeat_columns, value_to_col(col_from), value_to_col(col_to));
   return self;
 }
 
@@ -1165,10 +1082,7 @@ worksheet_print_area_(int argc, VALUE *argv, VALUE self) {
   rb_check_arity(argc, 1, 4);
   extract_range(argc, argv, &row_from, &col_from, &row_to, &col_to);
 
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-
-  worksheet_print_area(ptr->worksheet, row_from, col_from, row_to, col_to);
+  LXW_NO_RESULT_CALL(worksheet, print_area, row_from, col_from, row_to, col_to);
   return self;
 }
 
@@ -1179,9 +1093,7 @@ worksheet_print_area_(int argc, VALUE *argv, VALUE self) {
  */
 VALUE
 worksheet_fit_to_pages_(VALUE self, VALUE width, VALUE height) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_fit_to_pages(ptr->worksheet, NUM2INT(width), NUM2INT(height));
+  LXW_NO_RESULT_CALL(worksheet, fit_to_pages, NUM2INT(width), NUM2INT(height));
   return self;
 }
 
@@ -1191,9 +1103,7 @@ worksheet_fit_to_pages_(VALUE self, VALUE width, VALUE height) {
  */
 VALUE
 worksheet_set_start_page_(VALUE self, VALUE start_page) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_set_start_page(ptr->worksheet, NUM2INT(start_page));
+  LXW_NO_RESULT_CALL(worksheet, set_start_page, NUM2INT(start_page));
   return start_page;
 }
 
@@ -1203,27 +1113,21 @@ worksheet_set_start_page_(VALUE self, VALUE start_page) {
  */
 VALUE
 worksheet_set_print_scale_(VALUE self, VALUE scale) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_set_print_scale(ptr->worksheet, NUM2INT(scale));
+  LXW_NO_RESULT_CALL(worksheet, set_print_scale, NUM2INT(scale));
   return scale;
 }
 
 /* Sets text direction to rtl (e.g. for worksheets on Hebrew or Arabic). */
 VALUE
 worksheet_right_to_left_(VALUE self) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_right_to_left(ptr->worksheet);
+  LXW_NO_RESULT_CALL(worksheet, right_to_left);
   return self;
 }
 
 /* Hides all zero values. */
 VALUE
 worksheet_hide_zero_(VALUE self) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_hide_zero(ptr->worksheet);
+  LXW_NO_RESULT_CALL(worksheet, hide_zero);
   return self;
 }
 
@@ -1235,9 +1139,7 @@ worksheet_hide_zero_(VALUE self) {
  */
 VALUE
 worksheet_set_tab_color_(VALUE self, VALUE color) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_set_tab_color(ptr->worksheet, NUM2INT(color));
+  LXW_NO_RESULT_CALL(worksheet, set_tab_color, NUM2INT(color));
   return color;
 }
 
@@ -1250,65 +1152,8 @@ worksheet_set_tab_color_(VALUE self, VALUE color) {
 VALUE
 worksheet_protect_(int argc, VALUE *argv, VALUE self) {
   rb_check_arity(argc, 0, 2);
-  uint8_t with_options = '\0';
-  VALUE val;
-  VALUE opts = Qnil;
-  // All options are off by default
-  lxw_protection options = {};
-  const char *password = NULL;
-  if (argc > 0 && !NIL_P(argv[0])) {
-    switch (TYPE(argv[0])) {
-    case T_STRING:
-      password = StringValueCStr(argv[0]);
-      break;
-    case T_HASH:
-      opts = argv[0];
-      break;
-    default:
-      rb_raise(rb_eArgError, "Wrong argument %"PRIsVALUE", expected a String or Hash", rb_obj_class(argv[0]));
-    }
-  }
-
-  if (argc > 1) {
-    if (TYPE(argv[1]) == T_HASH) {
-      opts = argv[1];
-    } else {
-      rb_raise(rb_eArgError, "Expected a Hash, but got %"PRIsVALUE, rb_obj_class(argv[1]));
-    }
-  }
-
-  if (!NIL_P(opts)) {
-#define PR_OPT(field) {                                    \
-      val = rb_hash_aref(opts, ID2SYM(rb_intern(#field))); \
-      if (!NIL_P(val) && val) {                            \
-        options.field = 1;                                 \
-        with_options = 1;                                  \
-      }                                                    \
-    }
-    PR_OPT(no_select_locked_cells);
-    PR_OPT(no_select_unlocked_cells);
-    PR_OPT(format_cells);
-    PR_OPT(format_columns);
-    PR_OPT(format_rows);
-    PR_OPT(insert_columns);
-    PR_OPT(insert_rows);
-    PR_OPT(insert_hyperlinks);
-    PR_OPT(delete_columns);
-    PR_OPT(delete_rows);
-    PR_OPT(sort);
-    PR_OPT(autofilter);
-    PR_OPT(pivot_tables);
-    PR_OPT(scenarios);
-    PR_OPT(objects);
-#undef PR_OPT
-  }
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  if (with_options) {
-    worksheet_protect(ptr->worksheet, password, &options);
-  } else {
-    worksheet_protect(ptr->worksheet, password, NULL);
-  }
+  struct _protect_options po = _extract_protect_options(argc, argv);
+  LXW_NO_RESULT_CALL(worksheet, protect, po.password, (po.with_options ? &po.options : NULL));
   return self;
 }
 
@@ -1318,8 +1163,6 @@ worksheet_protect_(int argc, VALUE *argv, VALUE self) {
  */
 VALUE
 worksheet_outline_settings_(VALUE self, VALUE opts) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
   VALUE value;
 #define parse_param(name, default)                                      \
   value = rb_hash_aref(opts, ID2SYM(rb_intern(#name)));                 \
@@ -1329,7 +1172,7 @@ worksheet_outline_settings_(VALUE self, VALUE opts) {
   parse_param(symbols_right, LXW_TRUE);
   parse_param(auto_style, LXW_FALSE);
 #undef parse_param
-  worksheet_outline_settings(ptr->worksheet, visible, symbols_below, symbols_right, auto_style);
+  LXW_NO_RESULT_CALL(worksheet, outline_settings, visible, symbols_below, symbols_right, auto_style);
   return self;
 }
 
@@ -1339,11 +1182,32 @@ worksheet_outline_settings_(VALUE self, VALUE opts) {
  */
 VALUE
 worksheet_set_default_row_(VALUE self, VALUE height, VALUE hide_unused_rows) {
-  struct worksheet *ptr;
   uint8_t hide_ur = !NIL_P(hide_unused_rows) && hide_unused_rows != Qfalse ? 1 : 0;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  worksheet_set_default_row(ptr->worksheet, NUM2DBL(height), hide_ur);
+  LXW_NO_RESULT_CALL(worksheet, set_default_row, NUM2DBL(height), hide_ur);
   return self;
+}
+
+/*  call-seq: ws.horizontal_dpi -> int
+ *
+ *  Returns the horizontal dpi.
+ */
+VALUE
+worksheet_get_horizontal_dpi_(VALUE self) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  return INT2NUM(ptr->worksheet->horizontal_dpi);
+}
+
+/*  call-seq: ws.horizontal_dpi=(dpi) -> dpi
+ *
+ *  Sets the horizontal dpi.
+ */
+VALUE
+worksheet_set_horizontal_dpi_(VALUE self, VALUE val) {
+  struct worksheet *ptr;
+  Data_Get_Struct(self, struct worksheet, ptr);
+  ptr->worksheet->horizontal_dpi = NUM2INT(val);
+  return val;
 }
 
 /*  call-seq: ws.vertical_dpi -> int
@@ -1538,12 +1402,7 @@ worksheet_data_validation_(int argc, VALUE *argv, VALUE self) {
  */
 VALUE
 worksheet_set_vba_name_(VALUE self, VALUE name) {
-  struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-
-  lxw_error err = worksheet_set_vba_name(ptr->worksheet, StringValueCStr(name));
-  handle_lxw_error(err);
-
+  LXW_ERR_RESULT_CALL(worksheet, set_vba_name, StringValueCStr(name));
   return name;
 }
 
@@ -1707,8 +1566,8 @@ init_xlsxwriter_worksheet() {
   rb_define_method(cWorksheet, "set_page_view", worksheet_set_page_view_, 0);
   rb_define_method(cWorksheet, "paper=", worksheet_set_paper_, 1);
   rb_define_method(cWorksheet, "set_margins", worksheet_set_margins_, 4);
-  rb_define_method(cWorksheet, "set_header", worksheet_set_header_, 1);
-  rb_define_method(cWorksheet, "set_footer", worksheet_set_footer_, 1);
+  rb_define_method(cWorksheet, "set_header", worksheet_set_header_, -1);
+  rb_define_method(cWorksheet, "set_footer", worksheet_set_footer_, -1);
   rb_define_method(cWorksheet, "h_pagebreaks=", worksheet_set_h_pagebreaks_, 1);
   rb_define_method(cWorksheet, "v_pagebreaks=", worksheet_set_v_pagebreaks_, 1);
   rb_define_method(cWorksheet, "print_across", worksheet_print_across_, 0);
@@ -1730,6 +1589,8 @@ init_xlsxwriter_worksheet() {
   rb_define_method(cWorksheet, "outline_settings=", worksheet_outline_settings_, 1);
   rb_define_method(cWorksheet, "set_default_row", worksheet_set_default_row_, 2);
 
+  rb_define_method(cWorksheet, "horizontal_dpi", worksheet_get_horizontal_dpi_, 0);
+  rb_define_method(cWorksheet, "horizontal_dpi=", worksheet_set_horizontal_dpi_, 1);
   rb_define_method(cWorksheet, "vertical_dpi", worksheet_get_vertical_dpi_, 0);
   rb_define_method(cWorksheet, "vertical_dpi=", worksheet_set_vertical_dpi_, 1);
 

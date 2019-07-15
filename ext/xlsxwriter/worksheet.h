@@ -18,4 +18,4 @@ void init_xlsxwriter_worksheet();
 
 extern VALUE cWorksheet;
 
-#endif /// __WORKSHEET__
+#endif // __WORKSHEET__
