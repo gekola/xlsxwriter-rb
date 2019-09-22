@@ -55,9 +55,7 @@ module XlsxWriter
       parts.map(&:first)
     end
 
-
     private
-
 
     def make_part(str, format)
       [

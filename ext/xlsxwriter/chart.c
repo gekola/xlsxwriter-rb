@@ -611,11 +611,13 @@ void init_xlsxwriter_chart() {
 
 
   rb_define_alloc_func(cChart, chart_alloc);
+  rb_define_attr(cChart, "workbook", 1, 0);
   rb_define_method(cChart, "initialize", chart_init, 2);
   rb_define_method(cChart, "add_series", chart_add_series_, -1);
   rb_define_method(cChart, "x_axis", chart_x_axis_, 0);
   rb_define_method(cChart, "y_axis", chart_y_axis_, 0);
   rb_define_method(cChart, "title=", chart_title_set_name_, 1);
+  rb_define_method(cChart, "set_name_range", chart_title_set_name_range_, -1);
   rb_define_method(cChart, "legend_position=", chart_legend_set_position_, 1);
   rb_define_method(cChart, "legend_set_font", chart_legend_set_font_, 1);
   rb_define_method(cChart, "legend_delete_series", chart_legend_delete_series_, 1);

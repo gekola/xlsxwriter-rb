@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'axlsx'
 require 'xlsxwriter'
 require 'benchmark'

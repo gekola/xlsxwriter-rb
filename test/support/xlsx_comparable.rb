@@ -17,7 +17,7 @@ module XlsxComparable
           exp_xml_str = exp_zip.read(exp_entry.name)
           got_xml_str = got_zip.read(exp_entry.name)
 
-          if %w(.png .jpeg .bmp .bin).include?(File.extname(exp_entry.name))
+          if %w[.png .jpeg .bmp .bin].include?(File.extname(exp_entry.name))
             exp_xml_str.force_encoding('BINARY')
             assert_equal(exp_xml_str, got_xml_str)
             next
@@ -44,11 +44,12 @@ module XlsxComparable
 
           got_xml = _xml_to_list(got_xml_str)
 
-          if exp_entry.name =~ /.vml\z/
-            exp_xml = _vml_to_list(exp_xml_str)
-          else
-            exp_xml = _xml_to_list(exp_xml_str)
-          end
+          exp_xml =
+            if exp_entry.name =~ /.vml\z/
+              _vml_to_list(exp_xml_str)
+            else
+              _xml_to_list(exp_xml_str)
+            end
 
           if ignore_elements.key?(exp_entry.name)
             patterns = ignore_elements[exp_entry.name]
@@ -86,7 +87,7 @@ module XlsxComparable
       line.strip!
       next if line == ''
 
-      line.tr!(?', ?")
+      line.tr!("'", '"')
       line << ' ' if line =~ /"$/
       line << "\n" if line =~ />$/
       line.gsub!('><', ">\n<")

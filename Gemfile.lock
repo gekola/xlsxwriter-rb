@@ -6,11 +6,11 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    power_assert (1.1.4)
-    rake (12.3.2)
-    rake-compiler (1.0.7)
+    power_assert (1.1.5)
+    rake (12.3.3)
+    rake-compiler (1.0.8)
       rake
-    rubyzip (1.2.3)
+    rubyzip (1.2.4)
     test-unit (3.3.3)
       power_assert
 

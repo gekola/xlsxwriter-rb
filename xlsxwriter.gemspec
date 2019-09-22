@@ -1,12 +1,14 @@
-$LOAD_PATH << File.expand_path('../lib', __FILE__)
+# frozen_string_literal: true
+
+$LOAD_PATH << File.expand_path('lib', __dir__)
 
 require 'xlsxwriter/version'
 
 Gem::Specification.new do |s|
-  s.name = 'xlsxwriter'.freeze
+  s.name = 'xlsxwriter'
   s.version = XlsxWriter::VERSION
-  s.summary = 'Ruby interface to libxlsxwriter'.freeze
-  s.authors = ['Nick H'.freeze].freeze
+  s.summary = 'Ruby interface to libxlsxwriter'
+  s.authors = ['Nick H'].freeze
   s.homepage = 'https://github.com/gekola/xlsxwriter-rb'
   s.license = 'BSD-2-Clause-FreeBSD'
   s.files = ['Rakefile',

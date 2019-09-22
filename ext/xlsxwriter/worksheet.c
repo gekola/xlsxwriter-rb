@@ -1535,6 +1535,7 @@ init_xlsxwriter_worksheet() {
   cWorksheet = rb_define_class_under(mXlsxWriter, "Worksheet", rb_cObject);
 
   rb_define_alloc_func(cWorksheet, worksheet_alloc);
+  rb_define_attr(cWorksheet, "workbook", 1, 0);
   rb_define_method(cWorksheet, "initialize", worksheet_init, -1);
   rb_define_method(cWorksheet, "free", worksheet_release, 0);
   rb_define_method(cWorksheet, "write_string", worksheet_write_string_, -1);

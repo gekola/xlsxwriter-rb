@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'rake/extensiontask'
 
 task default: :test
@@ -12,9 +13,9 @@ Rake::Task['compile'].prerequisites.unshift :patch_dep
 Gem::PackageTask.new(spec) do |pkg|
 end
 
-DEP_DIR='ext/xlsxwriter/libxlsxwriter'
+DEP_DIR = 'ext/xlsxwriter/libxlsxwriter'
 
-desc "Checkout xlsxwriter C library"
+desc 'Checkout xlsxwriter C library'
 task :patch_dep do
   patches = Dir["#{pwd}/dep_patches/*.patch"]
   chdir(DEP_DIR) do
@@ -30,5 +31,5 @@ end
 
 desc 'Run specs'
 task test: :compile do
-  ruby('test/run-test.rb')
+  ruby 'test/run_test.rb'
 end

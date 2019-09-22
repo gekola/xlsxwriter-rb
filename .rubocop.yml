@@ -1,0 +1,11 @@
+AllCops:
+  Exclude:
+    - ext/xlsxwriter/libxlsxwriter/**/*
+    - pkg/**/*
+    - tmp/**/*
+
+Metrics/LineLength:
+  Max: 120
+
+Style/SafeNavigation:
+  Enabled: false
