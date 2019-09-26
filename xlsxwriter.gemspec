@@ -23,6 +23,6 @@ Gem::Specification.new do |s|
   s.test_files = Dir['test/**/*'].map(&:freeze)
 
   s.add_development_dependency 'rake-compiler', '~>1.0'
-  s.add_development_dependency 'rubyzip', '~>1.2'
+  s.add_development_dependency 'rubyzip', '~>2.0'
   s.add_development_dependency 'test-unit', '~>3.2'
 end
