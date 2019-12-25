@@ -7,8 +7,8 @@ GEM
   remote: https://rubygems.org/
   specs:
     power_assert (1.1.5)
-    rake (12.3.3)
-    rake-compiler (1.0.8)
+    rake (13.0.1)
+    rake-compiler (1.1.0)
       rake
     rubyzip (1.2.4)
     test-unit (3.3.3)
