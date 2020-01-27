@@ -10,7 +10,7 @@ GEM
     rake (12.3.3)
     rake-compiler (1.0.8)
       rake
-    rubyzip (1.2.4)
+    rubyzip (2.1.0)
     test-unit (3.3.3)
       power_assert
 
@@ -19,7 +19,7 @@ PLATFORMS
 
 DEPENDENCIES
   rake-compiler (~> 1.0)
-  rubyzip (~> 1.2)
+  rubyzip (~> 2.1)
   test-unit (~> 3.2)
   xlsxwriter!
 
