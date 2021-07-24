@@ -1,6 +1,6 @@
 # XlsxWriter
 
-[![Build Status](https://travis-ci.org/gekola/xlsxwriter-rb.svg?branch=master)](https://travis-ci.org/gekola/xlsxwriter-rb)
+[![Build Status](https://travis-ci.com/gekola/xlsxwriter-rb.svg?branch=master)](https://travis-ci.com/gekola/xlsxwriter-rb)
 [![Gem Version](https://badge.fury.io/rb/xlsxwriter.svg)](https://badge.fury.io/rb/xlsxwriter)
 
 ## Description
