@@ -96,13 +96,13 @@ class TestImage < XlsxWriterTestCase
 
   test 'image45' do |wb|
     wb.add_worksheet
-      .insert_image('E9', image_path('red.png'))
+      .insert_image('E9', image_path('red.png'), object_position: XlsxWriter::Worksheet::OBJECT_MOVE_AND_SIZE_AFTER)
       .set_row(8, height: 30, hide: true)
   end
 
   test 'image46' do |wb|
     wb.add_worksheet
-      .insert_image('E9', image_path('red.png'), x_offset: 0, y_offset: 4)
+      .insert_image('E9', image_path('red.png'), y_offset: 4, object_position: XlsxWriter::Worksheet::OBJECT_MOVE_AND_SIZE_AFTER)
       .set_row(8, height: 30, hide: true)
   end
 

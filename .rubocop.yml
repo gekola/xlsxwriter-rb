@@ -3,6 +3,7 @@ AllCops:
     - ext/xlsxwriter/libxlsxwriter/**/*
     - pkg/**/*
     - tmp/**/*
+  NewCops: enable
 
 Metrics/LineLength:
   Max: 120

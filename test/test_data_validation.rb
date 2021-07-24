@@ -31,7 +31,7 @@ class TestDataValidation < XlsxWriterTestCase
                                            Foobbt Foobbu Foobbv Foobbw Foobbx Foobby Foobbz
                                            Foobca End],
                                  input_title: 'This is the longest input title1',
-                                 input_message: 'This is the longest input message ' + 'a' * 221)
+                                 input_message: "This is the longest input message #{'a' * 221}")
   end
 
   test 'data_validation04', ref_file_name: 'data_validation02' do |wb|
@@ -49,7 +49,7 @@ class TestDataValidation < XlsxWriterTestCase
                                              Foobbt Foobbu Foobbv Foobbw Foobbx Foobby Foobbz
                                              Foobca End],
                                    input_title: 'This is the longest input title12',
-                                   input_message: 'This is the longest input message ' + 'a' * 221)
+                                   input_message: "This is the longest input message #{'a' * 221}")
     end
   end
 
@@ -68,7 +68,7 @@ class TestDataValidation < XlsxWriterTestCase
                                              Foobbt Foobbu Foobbv Foobbw Foobbx Foobby Foobbz
                                              Foobca End],
                                    input_title: 'This is the longest input title1',
-                                   input_message: 'This is the longest input message ' + 'a' * 222)
+                                   input_message: "This is the longest input message #{'a' * 222}")
     end
   end
 
@@ -87,7 +87,7 @@ class TestDataValidation < XlsxWriterTestCase
                                              Foobbt Foobbu Foobbv Foobbw Foobbx Foobby Foobbz
                                              Foobca End1],
                                    input_title: 'This is the longest input title1',
-                                   input_message: 'This is the longest input message ' + 'a' * 221)
+                                   input_message: "This is the longest input message #{'a' * 221}")
     end
   end
 

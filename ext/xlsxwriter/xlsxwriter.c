@@ -4,6 +4,7 @@
 #include "chartsheet.h"
 #include "format.h"
 #include "rich_string.h"
+#include "shared_strings.h"
 #include "workbook.h"
 #include "workbook_properties.h"
 #include "worksheet.h"
@@ -44,4 +45,5 @@ void Init_xlsxwriter() {
   init_xlsxwriter_chart();
   init_xlsxwriter_chartsheet();
   init_xlsxwriter_rich_string();
+  init_xlsxwriter_shared_strings_table();
 }

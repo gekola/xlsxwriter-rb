@@ -22,6 +22,7 @@ Gem::Specification.new do |s|
   s.extensions = Dir['ext/**/extconf.rb'].map(&:freeze)
   s.test_files = Dir['test/**/*'].map(&:freeze)
 
+  s.add_development_dependency 'diffy', '~>3.4'
   s.add_development_dependency 'rake-compiler', '~>1.0'
   s.add_development_dependency 'rubyzip', '~>1.2'
   s.add_development_dependency 'test-unit', '~>3.2'

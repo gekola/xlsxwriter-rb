@@ -664,7 +664,7 @@ worksheet_insert_chart_(int argc, VALUE *argv, VALUE self) {
   lxw_row_t row;
   lxw_col_t col;
   VALUE chart, opts = Qnil;
-  lxw_image_options options;
+  lxw_chart_options options;
   char with_options = '\0';
 
   rb_check_arity(argc, 2, 4);
@@ -683,7 +683,7 @@ worksheet_insert_chart_(int argc, VALUE *argv, VALUE self) {
   }
 
   if (!NIL_P(opts)) {
-    options = val_to_lxw_image_options(opts, &with_options);
+    options = val_to_lxw_chart_options(opts, &with_options);
   }
 
   struct worksheet *ptr;
@@ -1508,6 +1508,25 @@ int extract_range(int argc, VALUE *argv, lxw_row_t *row_from, lxw_col_t *col_fro
       setter;                                         \
     }                                                 \
   }
+lxw_chart_options
+val_to_lxw_chart_options(VALUE opts, char *with_options) {
+  VALUE val;
+  lxw_chart_options options = {
+    .x_offset = 0,
+    .y_offset = 0,
+    .x_scale = 1.0,
+    .y_scale = 1.0
+  };
+  SET_IMG_OPT("offset",   options.x_offset = options.y_offset = NUM2INT(val));
+  SET_IMG_OPT("x_offset", options.x_offset =                    NUM2INT(val));
+  SET_IMG_OPT("y_offset",                    options.y_offset = NUM2INT(val));
+  SET_IMG_OPT("scale",    options.x_scale  = options.y_scale  = NUM2DBL(val));
+  SET_IMG_OPT("x_scale",  options.x_scale  =                    NUM2DBL(val));
+  SET_IMG_OPT("y_scale",                     options.y_scale  = NUM2DBL(val));
+  SET_IMG_OPT("object_position", options.object_position = NUM2INT(val));
+  return options;
+}
+
 lxw_image_options
 val_to_lxw_image_options(VALUE opts, char *with_options) {
   VALUE val;
@@ -1523,7 +1542,10 @@ val_to_lxw_image_options(VALUE opts, char *with_options) {
   SET_IMG_OPT("scale",    options.x_scale  = options.y_scale  = NUM2DBL(val));
   SET_IMG_OPT("x_scale",  options.x_scale  =                    NUM2DBL(val));
   SET_IMG_OPT("y_scale",                     options.y_scale  = NUM2DBL(val));
+  SET_IMG_OPT("object_position", options.object_position = NUM2INT(val));
   SET_IMG_OPT("description", options.description = StringValueCStr(val));
+  SET_IMG_OPT("url", options.url = StringValueCStr(val));
+  SET_IMG_OPT("tip", options.tip = StringValueCStr(val));
   return options;
 }
 #undef SET_IMG_OPT
@@ -1633,6 +1655,12 @@ init_xlsxwriter_worksheet() {
   MAP_LXW_WH_CONST1(VALIDATION_CRITERIA_LESS_THAN);
   MAP_LXW_WH_CONST1(VALIDATION_CRITERIA_GREATER_THAN_OR_EQUAL_TO);
   MAP_LXW_WH_CONST1(VALIDATION_CRITERIA_LESS_THAN_OR_EQUAL_TO);
+
+  MAP_LXW_WH_CONST1(OBJECT_POSITION_DEFAULT);
+  MAP_LXW_WH_CONST1(OBJECT_MOVE_AND_SIZE);
+  MAP_LXW_WH_CONST1(OBJECT_MOVE_DONT_SIZE);
+  MAP_LXW_WH_CONST1(OBJECT_DONT_MOVE_DONT_SIZE);
+  MAP_LXW_WH_CONST1(OBJECT_MOVE_AND_SIZE_AFTER);
 #undef MAP_LXW_WH_CONST1
 #undef MAP_LXW_WH_CONST
 }

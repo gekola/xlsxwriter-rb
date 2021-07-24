@@ -7,6 +7,7 @@
 #include "chartsheet.h"
 #include "common.h"
 #include "format.h"
+#include "shared_strings.h"
 #include "workbook.h"
 #include "workbook_properties.h"
 #include "worksheet.h"
@@ -352,7 +353,7 @@ workbook_set_vba_name_(VALUE self, VALUE name) {
 
 /*  call-seq: wb.properties -> wb_properties
  *
- *  Returns worbook properties accessor object.
+ *  Returns workbook properties accessor object.
  *
  *    wb.properties.title = 'My awesome sheet'
  */
@@ -374,6 +375,56 @@ workbook_define_name_(VALUE self, VALUE name, VALUE formula) {
   LXW_ERR_RESULT_CALL(workbook, define_name, StringValueCStr(name), StringValueCStr(formula));
 
   return self;
+}
+
+/*  call-seq: wb.unset_default_url_format -> wb
+ *
+ *  Unsets default url format
+ */
+VALUE
+workbook_unset_default_url_format_(VALUE self) {
+  struct workbook *ptr;
+
+  Data_Get_Struct(self, struct workbook, ptr);
+  workbook_unset_default_url_format(ptr->workbook);
+
+  return self;
+}
+
+/*  call-seq: wb.max_url_length -> Integer
+ */
+VALUE
+workbook_max_url_length_(VALUE self) {
+  struct workbook *ptr;
+  Data_Get_Struct(self, struct workbook, ptr);
+  return INT2NUM(ptr->workbook->max_url_length);
+}
+
+/*  call-seq: wb.max_url_length = 255
+ */
+VALUE
+workbook_max_url_length_set_(VALUE self, VALUE value) {
+  struct workbook *ptr;
+
+  Data_Get_Struct(self, struct workbook, ptr);
+
+  ptr->workbook->max_url_length = NUM2INT(value);
+
+  return value;
+}
+
+/*  call-seq:
+ *    wb.sst.string_count -> 0
+ *
+ *  Returns special accessor object for shared strings table.
+ */
+VALUE
+workbook_sst_(VALUE self) {
+  struct workbook *ptr;
+
+  Data_Get_Struct(self, struct workbook, ptr);
+
+  return alloc_shared_strings_table_by_ref(ptr->workbook->sst);
 }
 
 /*  call-seq:
@@ -452,9 +503,13 @@ init_xlsxwriter_workbook() {
   rb_define_method(cWorkbook, "define_name", workbook_define_name_, 2);
   rb_define_method(cWorkbook, "properties", workbook_properties_, 0);
   rb_define_method(cWorkbook, "set_default_xf_indices", workbook_set_default_xf_indices_, 0);
+  rb_define_method(cWorkbook, "unset_default_url_format", workbook_unset_default_url_format_, 0);
   rb_define_method(cWorkbook, "validate_sheet_name", workbook_validate_sheet_name_, 1);
   rb_define_method(cWorkbook, "validate_worksheet_name", workbook_validate_sheet_name_, 1);
   rb_define_method(cWorkbook, "vba_name=", workbook_set_vba_name_, 1);
+  rb_define_method(cWorkbook, "max_url_length", workbook_max_url_length_, 0);
+  rb_define_method(cWorkbook, "max_url_length=", workbook_max_url_length_set_, 1);
+  rb_define_method(cWorkbook, "sst", workbook_sst_, 0);
 
   /*
    * This attribute contains effective font widths used for automatic column

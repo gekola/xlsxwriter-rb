@@ -6,6 +6,7 @@ require_relative './support/with_xlsx_file'
 
 class XlsxWriterTestCaseConfig
   attr_accessor :ignore_elements, :ignore_files
+
   def initialize
     @ignore_elements = {}
     @ignore_files = []

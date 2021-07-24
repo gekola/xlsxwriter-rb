@@ -253,6 +253,17 @@ DEF_PROP_SETTER(chart, rotation, NUM2UINT(rb_check_to_int(val)))
  */
 DEF_PROP_SETTER(chart, hole_size, NUM2UINT(rb_check_to_int(val)))
 
+/* Document-method: XlsxWriter::Workbook::Chart#show_blanks_as=
+ *
+ */
+VALUE
+chart_set_show_blank_as_(VALUE self, VALUE val) {
+  struct chart *ptr;
+  Data_Get_Struct(self, struct chart, ptr);
+  ptr->chart->show_blanks_as = NUM2INT(rb_check_to_int(val));
+  return val;
+}
+
 
 /* :nodoc: */
 VALUE
@@ -267,7 +278,7 @@ VALUE
 chart_set_axis_id_1_(VALUE self, VALUE val) {
   struct chart *ptr;
   Data_Get_Struct(self, struct chart, ptr);
-  ptr->chart->axis_id_1 = NUM2UINT(val);
+  ptr->chart->axis_id_1 = NUM2UINT(rb_check_to_int(val));
   return val;
 }
 
@@ -284,7 +295,7 @@ VALUE
 chart_set_axis_id_2_(VALUE self, VALUE val) {
   struct chart *ptr;
   Data_Get_Struct(self, struct chart, ptr);
-  ptr->chart->axis_id_2 = NUM2UINT(val);
+  ptr->chart->axis_id_2 = NUM2UINT(rb_check_to_int(val));
   return val;
 }
 
@@ -624,6 +635,7 @@ void init_xlsxwriter_chart() {
   rb_define_method(cChart, "style=", chart_set_style_, 1);
   rb_define_method(cChart, "rotation=", chart_set_rotation_, 1);
   rb_define_method(cChart, "hole_size=", chart_set_hole_size_, 1);
+  rb_define_method(cChart, "show_blank_as=", chart_set_show_blank_as_, 1);
 
   rb_define_method(cChart, "axis_id_1",  chart_get_axis_id_1_, 0);
   rb_define_method(cChart, "axis_id_1=", chart_set_axis_id_1_, 1);
@@ -702,6 +714,10 @@ void init_xlsxwriter_chart() {
   MAP_CHART_CONST(AXIS_LABEL_ALIGN_CENTER);
   MAP_CHART_CONST(AXIS_LABEL_ALIGN_LEFT);
   MAP_CHART_CONST(AXIS_LABEL_ALIGN_RIGHT);
+
+  MAP_CHART_CONST(BLANKS_AS_GAP);
+  MAP_CHART_CONST(BLANKS_AS_ZERO);
+  MAP_CHART_CONST(BLANKS_AS_CONNECTED);
 #undef MAP_CHART_CONST
 
 #define MAP_CHART_AXIS_CONST(name) rb_define_const(cChartAxis, #name, INT2NUM(LXW_CHART_AXIS_##name))

@@ -60,7 +60,7 @@ class TestOutline < XlsxWriterTestCase
     t.ignore_files << 'xl/calcChain.xml' << '[Content_Types].xml' << 'xl/_rels/workbook.xml.rels'
 
     ws = wb.add_worksheet 'Outline levels'
-    13.times { |i| ws.write_string i, 0, "Level #{(i > 6 ? 13 - i : i + 1)}" }
+    13.times { |i| ws.write_string i, 0, "Level #{i > 6 ? 13 - i : i + 1}" }
     13.times { |i| ws.set_row i, level: (i > 6 ? 13 - i : i + 1) }
   end
 

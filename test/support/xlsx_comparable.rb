@@ -1,9 +1,18 @@
 # frozen_string_literal: true
 
+require 'diffy'
 require 'test/unit'
 require 'zip'
 
 module XlsxComparable
+  def assert_long_seq_equal(expected, actual)
+    expected = expected.join("\n")
+    actual = actual.join("\n")
+    diff = Diffy::Diff.new(expected, actual).to_s(:color)
+    full_message = "diff: \n#{diff}"
+    assert_block(full_message) { expected == actual }
+  end
+
   def assert_xlsx_equal(got_path, exp_path, ignore_files = [], ignore_elements = {})
     Zip::File.open(exp_path) do |exp_zip|
       Zip::File.open(got_path) do |got_zip|
@@ -23,24 +32,7 @@ module XlsxComparable
             next
           end
 
-          case exp_entry.name
-          when 'docProps/core.xml'
-            exp_xml_str.gsub!(/ ?John/, '')
-            exp_xml_str.gsub!(/\d{4}-\d\d-\d\dT\d\d\:\d\d:\d\dZ/, '')
-            got_xml_str.gsub!(/\d{4}-\d\d-\d\dT\d\d\:\d\d:\d\dZ/, '')
-          when 'xl/workbook.xml'
-            exp_xml_str.gsub!(/<workbookView[^>]*>/, '<workbookView/>')
-            exp_xml_str.gsub!(/<calcPr[^>]*>/, '<calcPr/>')
-            got_xml_str.gsub!(/<workbookView[^>]*>/, '<workbookView/>')
-            got_xml_str.gsub!(/<calcPr[^>]*>/, '<calcPr/>')
-          when %r{xl/worksheets/sheet\d+.xml}
-            exp_xml_str.gsub!(/horizontalDpi="200" /, '')
-            exp_xml_str.gsub!(/verticalDpi="200" /, '')
-            exp_xml_str.gsub!(/(<pageSetup[^>]*) r:id="rId1"/, '\1')
-          when %r{xl/charts/chart\d+.xml}
-            exp_xml_str.gsub!(/<c:pageMargins[^>]*>/, '<c:pageMargins/>')
-            got_xml_str.gsub!(/<c:pageMargins[^>]*>/, '<c:pageMargins/>')
-          end
+          _sanitize_for_comparison(exp_entry.name, exp_xml_str, got_xml_str)
 
           got_xml = _xml_to_list(got_xml_str)
 
@@ -62,7 +54,7 @@ module XlsxComparable
             exp_xml = _sort_rel_file_data(exp_xml)
           end
 
-          assert_equal exp_xml, got_xml
+          assert_long_seq_equal exp_xml, got_xml
         end
       end
     end
@@ -107,5 +99,26 @@ module XlsxComparable
     xml_elements.push(last)
 
     xml_elements
+  end
+
+  def _sanitize_for_comparison(name, exp_xml_str, got_xml_str)
+    case name
+    when 'docProps/core.xml'
+      exp_xml_str.gsub!(/ ?John/, '')
+      exp_xml_str.gsub!(/\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ/, '')
+      got_xml_str.gsub!(/\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ/, '')
+    when 'xl/workbook.xml'
+      exp_xml_str.gsub!(/<workbookView[^>]*>/, '<workbookView/>')
+      exp_xml_str.gsub!(/<calcPr[^>]*>/, '<calcPr/>')
+      got_xml_str.gsub!(/<workbookView[^>]*>/, '<workbookView/>')
+      got_xml_str.gsub!(/<calcPr[^>]*>/, '<calcPr/>')
+    when %r{xl/worksheets/sheet\d+.xml}
+      exp_xml_str.gsub!(/horizontalDpi="200" /, '')
+      exp_xml_str.gsub!(/verticalDpi="200" /, '')
+      exp_xml_str.gsub!(/(<pageSetup[^>]*) r:id="rId1"/, '\1')
+    when %r{xl/charts/chart\d+.xml}
+      exp_xml_str.gsub!(/<c:pageMargins[^>]*>/, '<c:pageMargins/>')
+      got_xml_str.gsub!(/<c:pageMargins[^>]*>/, '<c:pageMargins/>')
+    end
   end
 end

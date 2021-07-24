@@ -121,6 +121,7 @@ class TestChartBar < XlsxWriterTestCase
   end
 
   chart_test 'chart_bar08', XlsxWriter::Workbook::Chart::BAR do |chart, ws|
+    ws.workbook.unset_default_url_format
     chart.axis_id_1 = 40_522_880
     chart.axis_id_2 = 40_524_416
 
@@ -150,6 +151,7 @@ class TestChartBar < XlsxWriterTestCase
   end
 
   test 'chart_bar14' do |wb|
+    wb.unset_default_url_format
     wb.add_worksheet
 
     wb.add_worksheet do |ws|

@@ -15,12 +15,12 @@ index ba71ff7..091af4a 100644
  typedef voidpf   (ZCALLBACK *open_file_func)      OF((voidpf opaque, const char* filename, int mode));
  typedef uLong    (ZCALLBACK *read_file_func)      OF((voidpf opaque, voidpf stream, void* buf, uLong size));
 diff --git a/src/Makefile b/src/Makefile
-index 2f1107a..4315097 100644
+index 4d5f106..bee1b8a 100644
 --- a/src/Makefile
 +++ b/src/Makefile
-@@ -51,11 +51,6 @@ endif
+@@ -69,11 +69,6 @@ endif
  # Flags passed to compiler.
- CFLAGS   += -g -O3 -Wall -Wextra -pedantic -ansi
+ CFLAGS   += -g $(OPT_LEVEL) -Wall -Wextra -Wstrict-prototypes -pedantic -ansi
  
 -# Fix for modified zconf.h on Gentoo.
 -ifneq (,$(findstring gentoo, $(shell uname -sr)))

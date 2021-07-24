@@ -279,8 +279,8 @@ class TestChartAxis < XlsxWriterTestCase
   end
 
   chart_test 'chart_axis26', XlsxWriter::Workbook::Chart::LINE do |chart|
-    chart.axis_id_1 = 73_048_448
-    chart.axis_id_2 = 73_049_984
+    chart.axis_id_1 = 108_315_392
+    chart.axis_id_2 = 108_329_216
 
     chart.add_series '=Sheet1!$A$1:$A$5'
     chart.add_series '=Sheet1!$B$1:$B$5'
@@ -290,8 +290,8 @@ class TestChartAxis < XlsxWriterTestCase
   end
 
   chart_test 'chart_axis27', XlsxWriter::Workbook::Chart::LINE do |chart|
-    chart.axis_id_1 = 73_048_448
-    chart.axis_id_2 = 73_049_984
+    chart.axis_id_1 = 108_315_392
+    chart.axis_id_2 = 108_329_216
 
     chart.add_series '=Sheet1!$A$1:$A$5'
     chart.add_series '=Sheet1!$B$1:$B$5'
@@ -301,8 +301,8 @@ class TestChartAxis < XlsxWriterTestCase
   end
 
   chart_test 'chart_axis28', XlsxWriter::Workbook::Chart::LINE do |chart|
-    chart.axis_id_1 = 45_451_904
-    chart.axis_id_2 = 47_401_600
+    chart.axis_id_1 = 115_375_104
+    chart.axis_id_2 = 115_390_720
 
     chart.add_series '=Sheet1!$A$1:$A$5'
     chart.add_series '=Sheet1!$B$1:$B$5'
@@ -312,8 +312,8 @@ class TestChartAxis < XlsxWriterTestCase
   end
 
   chart_test 'chart_axis29', XlsxWriter::Workbook::Chart::LINE do |chart|
-    chart.axis_id_1 = 45_444_480
-    chart.axis_id_2 = 47_402_368
+    chart.axis_id_1 = 145_169_024
+    chart.axis_id_2 = 145_176_448
 
     chart.add_series '=Sheet1!$A$1:$A$5'
     chart.add_series '=Sheet1!$B$1:$B$5'
@@ -356,8 +356,8 @@ class TestChartAxis < XlsxWriterTestCase
   end
 
   chart_test 'chart_axis33', XlsxWriter::Workbook::Chart::LINE do |chart|
-    chart.axis_id_1 = 68_827_008
-    chart.axis_id_2 = 68_898_816
+    chart.axis_id_1 = 143_682_944
+    chart.axis_id_2 = 143_946_496
 
     chart.add_series '=Sheet1!$A$1:$A$5'
     chart.add_series '=Sheet1!$B$1:$B$5'

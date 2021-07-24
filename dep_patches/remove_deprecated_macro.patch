@@ -1,0 +1,19 @@
+diff --git a/include/xlsxwriter/common.h b/include/xlsxwriter/common.h
+index 62f9c61..4856ab6 100644
+--- a/include/xlsxwriter/common.h
++++ b/include/xlsxwriter/common.h
+@@ -26,12 +26,14 @@
+ #endif
+ 
++#ifndef DEPRECATED
+ #if __GNUC__ >= 5
+ #define DEPRECATED(func, msg) func __attribute__ ((deprecated(msg)))
+ #elif defined(_MSC_VER)
+ #define DEPRECATED(func, msg) __declspec(deprecated, msg) func
+ #else
+ #define DEPRECATED(func, msg) func
+ #endif
++#endif
+ 
+ /** Integer data type to represent a row value. Equivalent to `uint32_t`.
+  *

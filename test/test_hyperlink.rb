@@ -4,6 +4,7 @@ require_relative './xlsx_func_testcase'
 
 class TestHyperlink < XlsxWriterTestCase
   test 'hyperlink03' do |wb|
+    wb.unset_default_url_format
     ws1 = wb.add_worksheet
     ws2 = wb.add_worksheet
 
@@ -21,6 +22,7 @@ class TestHyperlink < XlsxWriterTestCase
   end
 
   test 'hyperlink05' do |wb|
+    wb.unset_default_url_format
     wb.add_worksheet
       .write_url(0, 'A', 'http://www.perl.org/')
       .write_url(2, 'A', 'http://www.perl.org/', nil, string: 'Perl home')
@@ -29,10 +31,11 @@ class TestHyperlink < XlsxWriterTestCase
   end
 
   test 'hyperlink09' do |wb|
+    wb.unset_default_url_format
     wb.add_worksheet
-      .write_url(0, 'A', 'external:..\\foo.xlsx')
-      .write_url(2, 'A', 'external:..\\foo.xlsx#Sheet1!A1')
-      .write_url(4, 'A', 'external:\\\\VBOXSVR\\share\\foo.xlsx#Sheet1!B2',
+      .write_url('A1', 'external:..\\foo.xlsx')
+      .write_url('A3', 'external:..\\foo.xlsx#Sheet1!A1')
+      .write_url('A5', 'external:\\\\VBOXSVR\\share\\foo.xlsx#Sheet1!B2',
                  string: 'J:\\foo.xlsx#Sheet1!B2')
   end
 
@@ -48,9 +51,18 @@ class TestHyperlink < XlsxWriterTestCase
   end
 
   test 'hyperlink18' do |wb|
+    wb.max_url_length = 255
+    ws = wb.add_worksheet
+    wb.unset_default_url_format
+    ws.write_url(0, 0, 'http://google.com/00000000001111111111222222222233333333334444444444555555555566666666666777777777778888888888999999999990000000000111111111122222222223333333333444444444455555555556666666666677777777777888888888899999999999000000000011111111112222222222x')
+  end
+
+  test 'hyperlink19' do |wb|
+    pend
     wb.add_worksheet
-      .write_url(0, 0, 'http://google.com/00000000001111111111222222222233333333334444444444555555555566666666666777777777778888888888999999999990000000000111111111122222222223333333333444444444455555555556666666666677777777777888888888899999999999000000000011111111112222222222x')
-      .write_url(0, 0, 'http://google.com/00000000001111111111222222222233333333334444444444555555555566666666666777777777778888888888999999999990000000000111111111122222222223333333333444444444455555555556666666666677777777777888888888899999999999000000000011111111112222222222xy')
+      .write_url('A1', 'http://www.perl.com/')
+      .write_formula_num('A1', '=1+1', 2)
+    wb.sst.string_count = 0
   end
 
   test 'hyperlink20' do |wb, t|

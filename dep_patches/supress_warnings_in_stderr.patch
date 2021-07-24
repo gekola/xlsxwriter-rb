@@ -1,8 +1,8 @@
 diff --git a/include/xlsxwriter/common.h b/include/xlsxwriter/common.h
-index 9524683..94d4ed8 100644
+index 62f9c61..4856ab6 100644
 --- a/include/xlsxwriter/common.h
 +++ b/include/xlsxwriter/common.h
-@@ -219,6 +219,8 @@ enum lxw_custom_property_types {
+@@ -251,6 +253,8 @@ enum lxw_custom_property_types {
      if (error)                                  \
          return error;
  
@@ -11,7 +11,7 @@ index 9524683..94d4ed8 100644
  #define LXW_WARN(message)                       \
      fprintf(stderr, "[WARNING]: " message "\n")
  
-@@ -268,6 +270,20 @@ enum lxw_custom_property_types {
+@@ -300,6 +304,20 @@ enum lxw_custom_property_types {
         return;                                                             \
      }
  
