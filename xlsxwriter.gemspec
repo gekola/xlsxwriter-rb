@@ -24,6 +24,6 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency 'diffy', '~>3.4'
   s.add_development_dependency 'rake-compiler', '~>1.0'
-  s.add_development_dependency 'rubyzip', '~>1.2'
+  s.add_development_dependency 'rubyzip', '~>2.3'
   s.add_development_dependency 'test-unit', '~>3.2'
 end
