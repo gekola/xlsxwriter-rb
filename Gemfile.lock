@@ -9,7 +9,7 @@ GEM
     diffy (3.4.0)
     power_assert (2.0.0)
     rake (13.0.6)
-    rake-compiler (1.1.1)
+    rake-compiler (1.1.2)
       rake
     rubyzip (2.3.2)
     test-unit (3.4.4)
