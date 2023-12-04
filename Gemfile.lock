@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    xlsxwriter (0.2.1.pre.3)
+    xlsxwriter (0.2.2)
 
 GEM
   remote: https://rubygems.org/
