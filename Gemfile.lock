@@ -6,13 +6,13 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    diffy (3.4.0)
-    power_assert (2.0.0)
-    rake (13.0.6)
-    rake-compiler (1.1.1)
+    diffy (3.4.2)
+    power_assert (2.0.3)
+    rake (13.1.0)
+    rake-compiler (1.2.5)
       rake
     rubyzip (2.3.2)
-    test-unit (3.4.4)
+    test-unit (3.6.1)
       power_assert
 
 PLATFORMS
@@ -27,4 +27,4 @@ DEPENDENCIES
   xlsxwriter!
 
 BUNDLED WITH
-   2.2.21
+   2.4.19
