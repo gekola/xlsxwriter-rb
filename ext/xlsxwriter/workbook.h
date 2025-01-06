@@ -17,5 +17,6 @@ void init_xlsxwriter_workbook();
 
 extern VALUE mXlsxWriter;
 extern VALUE cWorkbook;
+extern const rb_data_type_t workbook_type;
 
 #endif // __WORKBOOK__

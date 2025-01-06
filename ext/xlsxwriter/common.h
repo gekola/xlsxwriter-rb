@@ -1,18 +1,18 @@
 #include <ruby.h>
 #include <ruby/intern.h>
-#include <xlsxwriter_ext.h>
+#include "xlsxwriter_ext.h"
 
 #ifndef __COMMON__
 #define __COMMON__
 
 #define LXW_NO_RESULT_CALL(cls, method, ...) {  \
   struct cls *ptr;                              \
-  Data_Get_Struct(self, struct cls, ptr);       \
+  TypedData_Get_Struct(self, struct cls, &(cls ## _type), ptr); \
   cls ## _ ## method(ptr->cls, ##__VA_ARGS__); }
 
 #define LXW_ERR_RESULT_CALL(cls, method, ...) {      \
     struct cls *ptr;                                \
-    Data_Get_Struct(self, struct cls, ptr);         \
+    TypedData_Get_Struct(self, struct cls, &(cls ## _type), ptr);             \
     lxw_error err = cls ## _ ## method(ptr->cls, ##__VA_ARGS__); \
     handle_lxw_error(err); }
 
@@ -38,7 +38,7 @@ _extract_protect_options(int argc, VALUE *argv) {
       opts = argv[0];
       break;
     default:
-      rb_raise(rb_eArgError, "Wrong argument %"PRIsVALUE", expected a String or Hash", rb_obj_class(argv[0]));
+      rb_raise(rb_eArgError, "Wrong argument %" PRIsVALUE ", expected a String or Hash", rb_obj_class(argv[0]));
     }
   }
 
@@ -46,7 +46,7 @@ _extract_protect_options(int argc, VALUE *argv) {
     if (TYPE(argv[1]) == T_HASH) {
       opts = argv[1];
     } else {
-      rb_raise(rb_eArgError, "Expected a Hash, but got %"PRIsVALUE, rb_obj_class(argv[1]));
+      rb_raise(rb_eArgError, "Expected a Hash, but got %" PRIsVALUE, rb_obj_class(argv[1]));
     }
   }
 

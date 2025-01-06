@@ -25,5 +25,6 @@ void init_xlsxwriter_chart();
 extern VALUE cChart;
 extern VALUE cChartSeries;
 extern VALUE cChartAxis;
+extern const rb_data_type_t chart_type;
 
 #endif // __CHART__

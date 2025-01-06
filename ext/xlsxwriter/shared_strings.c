@@ -10,14 +10,28 @@ struct sst {
 
 VALUE cSharedStringsTable;
 
-void sst_free(void *p);
+size_t sst_size(const void *data) {
+  return sizeof(struct sst);
+}
+
+const rb_data_type_t sst_type = {
+    .wrap_struct_name = "lxw_rich_string_tuple",
+    .function =
+        {
+            .dmark = NULL,
+            .dfree = ruby_xfree,
+            .dsize = sst_size,
+        },
+    .data = NULL,
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
 
 /* :nodoc: */
 VALUE
 sst_alloc(VALUE klass) {
   VALUE obj;
   struct sst *sst_ptr;
-  obj = Data_Make_Struct(klass, struct sst, NULL, sst_free, sst_ptr);
+  obj = TypedData_Make_Struct(klass, struct sst, &sst_type, sst_ptr);
   sst_ptr->sst = NULL;
 
   return obj;
@@ -30,26 +44,22 @@ alloc_shared_strings_table_by_ref(struct lxw_sst *sst) {
 
   VALUE object = rb_obj_alloc(cSharedStringsTable);
   struct sst *sst_ptr;
-  Data_Get_Struct(object, struct sst, sst_ptr);
+  TypedData_Get_Struct(object, struct sst, &sst_type, sst_ptr);
   sst_ptr->sst = sst;
   return object;
-}
-
-void
-sst_free(void *p) {
 }
 
 VALUE
 sst_string_count_get_(VALUE self) {
   struct sst *sst_ptr;
-  Data_Get_Struct(self, struct sst, sst_ptr);
+  TypedData_Get_Struct(self, struct sst, &sst_type, sst_ptr);
   return INT2NUM(sst_ptr->sst->string_count);
 }
 
 VALUE
 sst_string_count_set_(VALUE self, VALUE val) {
   struct sst *sst_ptr;
-  Data_Get_Struct(self, struct sst, sst_ptr);
+  TypedData_Get_Struct(self, struct sst, &sst_type, sst_ptr);
 
   sst_ptr->sst->string_count = NUM2INT(val);
   return val;

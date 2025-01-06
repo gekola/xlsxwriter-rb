@@ -10,9 +10,57 @@ VALUE cChart;
 VALUE cChartSeries;
 VALUE cChartAxis;
 
+size_t
+chart_size(const void *data) {
+  return sizeof(struct chart);
+}
+
+const rb_data_type_t chart_type = {
+	.wrap_struct_name = "chart",
+	.function = {
+		.dmark = NULL,
+		.dfree = ruby_xfree,
+		.dsize = chart_size,
+	},
+	.data = NULL,
+	.flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+size_t
+chart_axis_size(const void *data) {
+  return sizeof(struct chart_axis);
+}
+
+const rb_data_type_t chart_axis_type = {
+  .wrap_struct_name = "chart_axis",
+  .function = {
+    .dmark = NULL,
+    .dfree = ruby_xfree,
+    .dsize = chart_axis_size,
+  },
+  .data = NULL,
+  .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
+size_t
+chart_series_size(const void *data) {
+  return sizeof(struct chart_series);
+}
+
+const rb_data_type_t chart_series_type = {
+  .wrap_struct_name = "chart_series",
+  .function = {
+    .dmark = NULL,
+    .dfree = ruby_xfree,
+    .dsize = chart_series_size,
+  },
+  .data = NULL,
+  .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
+
 #define DEF_PROP_SETTER(type, field, value) VALUE type ## _set_ ## field ## _ (VALUE self, VALUE val) { \
     struct type *ptr;                                                   \
-    Data_Get_Struct(self, struct type, ptr);                            \
+    TypedData_Get_Struct(self, struct type, &(type ## _type), ptr);     \
     type ## _set_ ## field (ptr->type, value);                          \
     return val;                                                         \
 }
@@ -20,10 +68,8 @@ VALUE cChartAxis;
 
 VALUE
 chart_alloc(VALUE klass) {
-  VALUE obj;
   struct chart *ptr;
-
-  obj = Data_Make_Struct(klass, struct chart, NULL, NULL, ptr);
+  VALUE obj = TypedData_Make_Struct(klass, struct chart, &chart_type, ptr);
 
   ptr->chart = NULL;
 
@@ -36,8 +82,8 @@ chart_init(VALUE self, VALUE workbook, VALUE type) {
   struct chart *ptr;
   struct workbook *wb_ptr;
 
-  Data_Get_Struct(workbook, struct workbook, wb_ptr);
-  Data_Get_Struct(self, struct chart, ptr);
+  TypedData_Get_Struct(workbook, struct workbook, &workbook_type, wb_ptr);
+  TypedData_Get_Struct(self, struct chart, &chart_type, ptr);
   if (wb_ptr && wb_ptr->workbook) {
     ptr->chart = workbook_add_chart(wb_ptr->workbook, NUM2INT(type));
   }
@@ -52,7 +98,7 @@ chart_axis_alloc(VALUE klass) {
   VALUE obj;
   struct chart_axis *ptr;
 
-  obj = Data_Make_Struct(klass, struct chart_axis, NULL, NULL, ptr);
+  obj = TypedData_Make_Struct(klass, struct chart_axis, &chart_axis_type, ptr);
 
   return obj;
 }
@@ -63,8 +109,8 @@ chart_axis_init(VALUE self, VALUE chart, VALUE type) {
   struct chart_axis *ptr;
   struct chart *c_ptr;
 
-  Data_Get_Struct(chart, struct chart, c_ptr);
-  Data_Get_Struct(self, struct chart_axis, ptr);
+  TypedData_Get_Struct(chart, struct chart, &chart_type, c_ptr);
+  TypedData_Get_Struct(self, struct chart_axis, &chart_axis_type, ptr);
   rb_iv_set(self, "@chart", chart);
   if (c_ptr && c_ptr->chart) {
     ID axis = rb_check_id_cstr("x", 1, NULL);
@@ -92,7 +138,7 @@ chart_series_alloc(VALUE klass) {
   VALUE obj;
   struct chart_series *ptr;
 
-  obj = Data_Make_Struct(klass, struct chart_series, NULL, NULL, ptr);
+  obj = TypedData_Make_Struct(klass, struct chart_series, &chart_series_type, ptr);
 
   ptr->chart_series = NULL;
 
@@ -107,8 +153,8 @@ chart_series_init(int argc, VALUE *argv, VALUE self) {
   char *cats = NULL, *vals = NULL;
   rb_check_arity(argc, 1, 3);
 
-  Data_Get_Struct(argv[0], struct chart, c_ptr);
-  Data_Get_Struct(self, struct chart_series, ptr);
+  TypedData_Get_Struct(argv[0], struct chart, &chart_type, c_ptr);
+  TypedData_Get_Struct(self, struct chart_series, &chart_series_type, ptr);
 
   if (argc > 2) {
     cats = StringValueCStr(argv[1]);
@@ -160,7 +206,7 @@ chart_y_axis_(VALUE self) {
 VALUE
 chart_title_set_name_(VALUE self, VALUE name) {
   struct chart *ptr;
-  Data_Get_Struct(self, struct chart, ptr);
+  TypedData_Get_Struct(self, struct chart, &chart_type, ptr);
 
   if (RTEST(name)) {
     chart_title_set_name(ptr->chart, StringValueCStr(name));
@@ -259,7 +305,7 @@ DEF_PROP_SETTER(chart, hole_size, NUM2UINT(rb_check_to_int(val)))
 VALUE
 chart_set_show_blank_as_(VALUE self, VALUE val) {
   struct chart *ptr;
-  Data_Get_Struct(self, struct chart, ptr);
+  TypedData_Get_Struct(self, struct chart, &chart_type, ptr);
   ptr->chart->show_blanks_as = NUM2INT(rb_check_to_int(val));
   return val;
 }
@@ -269,7 +315,7 @@ chart_set_show_blank_as_(VALUE self, VALUE val) {
 VALUE
 chart_get_axis_id_1_(VALUE self) {
   struct chart *ptr;
-  Data_Get_Struct(self, struct chart, ptr);
+  TypedData_Get_Struct(self, struct chart, &chart_type, ptr);
   return UINT2NUM(ptr->chart->axis_id_1);
 }
 
@@ -277,7 +323,7 @@ chart_get_axis_id_1_(VALUE self) {
 VALUE
 chart_set_axis_id_1_(VALUE self, VALUE val) {
   struct chart *ptr;
-  Data_Get_Struct(self, struct chart, ptr);
+  TypedData_Get_Struct(self, struct chart, &chart_type, ptr);
   ptr->chart->axis_id_1 = NUM2UINT(rb_check_to_int(val));
   return val;
 }
@@ -286,7 +332,7 @@ chart_set_axis_id_1_(VALUE self, VALUE val) {
 VALUE
 chart_get_axis_id_2_(VALUE self) {
   struct chart *ptr;
-  Data_Get_Struct(self, struct chart, ptr);
+  TypedData_Get_Struct(self, struct chart, &chart_type, ptr);
   return UINT2NUM(ptr->chart->axis_id_2);
 }
 
@@ -294,7 +340,7 @@ chart_get_axis_id_2_(VALUE self) {
 VALUE
 chart_set_axis_id_2_(VALUE self, VALUE val) {
   struct chart *ptr;
-  Data_Get_Struct(self, struct chart, ptr);
+  TypedData_Get_Struct(self, struct chart, &chart_type, ptr);
   ptr->chart->axis_id_2 = NUM2UINT(rb_check_to_int(val));
   return val;
 }
@@ -456,7 +502,7 @@ VALUE
 chart_axis_set_source_linked_(VALUE self, VALUE val) {
   struct chart_axis *ptr;
 
-  Data_Get_Struct(self, struct chart_axis, ptr);
+  TypedData_Get_Struct(self, struct chart_axis, &chart_axis_type, ptr);
 
   ptr->chart_axis->source_linked = NUM2UINT(rb_check_to_int(val));
 

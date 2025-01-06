@@ -11,7 +11,7 @@ VALUE
 workbook_properties_init_(VALUE self, VALUE workbook) {
   struct workbook *wb_ptr;
   rb_iv_set(self, "@workbook", workbook);
-  Data_Get_Struct(workbook, struct workbook, wb_ptr);
+  TypedData_Get_Struct(workbook, struct workbook, &workbook_type, wb_ptr);
   if (!wb_ptr->properties) {
     wb_ptr->properties = calloc(1, sizeof(lxw_doc_properties));
   }
@@ -42,7 +42,7 @@ workbook_properties_set_(VALUE self, VALUE key, VALUE value) {
   }
 
   struct workbook *wb_ptr;
-  Data_Get_Struct(rb_iv_get(self, "@workbook"), struct workbook, wb_ptr);
+  TypedData_Get_Struct(rb_iv_get(self, "@workbook"), struct workbook, &workbook_type, wb_ptr);
   lxw_doc_properties *props = wb_ptr->properties;
   if (!props) {
     rb_raise(rb_eRuntimeError, "Workbook properties are already freed.");

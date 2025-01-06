@@ -1,18 +1,18 @@
 PATH
   remote: .
   specs:
-    xlsxwriter (0.2.2)
+    xlsxwriter (0.2.3.pre.1)
 
 GEM
   remote: https://rubygems.org/
   specs:
-    diffy (3.4.2)
-    power_assert (2.0.3)
-    rake (13.1.0)
-    rake-compiler (1.2.5)
+    diffy (3.4.3)
+    power_assert (2.0.5)
+    rake (13.2.1)
+    rake-compiler (1.2.9)
       rake
-    rubyzip (2.3.2)
-    test-unit (3.6.1)
+    rubyzip (2.4.1)
+    test-unit (3.6.7)
       power_assert
 
 PLATFORMS

@@ -5,22 +5,39 @@
 
 VALUE cRichString;
 
+void rich_string_clear(void *p);
 void rich_string_free(void *p);
 
+size_t
+rich_string_size(const void *data) {
+  return sizeof(lxw_rich_string_tuple *);
+}
+
+const rb_data_type_t rich_string_type = {
+    .wrap_struct_name = "lxw_rich_string_tuple",
+    .function =
+        {
+            .dmark = NULL,
+            .dfree = rich_string_free,
+            .dsize = rich_string_size,
+        },
+    .data = NULL,
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
 
 VALUE
 rich_string_alloc(VALUE klass) {
   VALUE obj;
   lxw_rich_string_tuple **ptr;
 
-  obj = Data_Make_Struct(klass, lxw_rich_string_tuple *, NULL, rich_string_free, ptr);
+  obj = TypedData_Make_Struct(klass, lxw_rich_string_tuple *, &rich_string_type, ptr);
   *ptr = NULL;
 
   return obj;
 }
 
 void
-rich_string_free(void *p) {
+rich_string_clear(void *p) {
   lxw_rich_string_tuple **ptr = p;
   if (*ptr) {
     ruby_xfree(*ptr);
@@ -28,16 +45,18 @@ rich_string_free(void *p) {
   }
 }
 
+void
+rich_string_free(void *p) {
+  rich_string_clear(p);
+  ruby_xfree(p);
+}
+
 VALUE
 rich_string_cached_p(VALUE self) {
   lxw_rich_string_tuple **ptr;
-  Data_Get_Struct(self, lxw_rich_string_tuple *, ptr);
+  TypedData_Get_Struct(self, lxw_rich_string_tuple *, &rich_string_type, ptr);
 
-  if (*ptr) {
-    return Qtrue;
-  } else {
-    return Qfalse;
-  }
+  return (*ptr ? Qtrue : Qfalse);
 }
 
 lxw_rich_string_tuple **
@@ -48,7 +67,7 @@ serialize_rich_string(VALUE rs) {
   int len = RARRAY_LEN(arr);
 
   lxw_rich_string_tuple **ptr;
-  Data_Get_Struct(rs, lxw_rich_string_tuple *, ptr);
+  TypedData_Get_Struct(rs, lxw_rich_string_tuple *, &rich_string_type, ptr);
 
   if (*ptr) { // cached
     return (lxw_rich_string_tuple **) *ptr;

@@ -6,15 +6,31 @@
 
 VALUE cChartsheet;
 
+void chartsheet_clear(void *p);
 void chartsheet_free(void *p);
 
+size_t
+chartsheet_size(const void *data) {
+  return sizeof(struct chartsheet);
+}
+
+const rb_data_type_t chartsheet_type = {
+	.wrap_struct_name = "chartsheet",
+	.function = {
+		.dmark = NULL,
+		.dfree = chartsheet_free,
+		.dsize = chartsheet_size,
+	},
+	.data = NULL,
+	.flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
 
 VALUE
 chartsheet_alloc(VALUE klass) {
   VALUE obj;
   struct chartsheet *ptr;
 
-  obj = Data_Make_Struct(klass, struct chartsheet, NULL, chartsheet_free, ptr);
+  obj = TypedData_Make_Struct(klass, struct chartsheet, &chartsheet_type, ptr);
 
   ptr->chartsheet = NULL;
 
@@ -28,7 +44,7 @@ chartsheet_init(int argc, VALUE *argv, VALUE self) {
   struct workbook *wb_ptr;
   struct chartsheet *ptr;
 
-  Data_Get_Struct(self, struct chartsheet, ptr);
+  TypedData_Get_Struct(self, struct chartsheet, &chartsheet_type, ptr);
 
   if (argc == 2) {
     name = StringValueCStr(argv[1]);
@@ -36,7 +52,7 @@ chartsheet_init(int argc, VALUE *argv, VALUE self) {
 
   rb_iv_set(self, "@workbook", argv[0]);
 
-  Data_Get_Struct(argv[0], struct workbook, wb_ptr);
+  TypedData_Get_Struct(argv[0], struct workbook, &workbook_type, wb_ptr);
   ptr->chartsheet = workbook_add_chartsheet(wb_ptr->workbook, name);
   if (!ptr->chartsheet)
     rb_raise(eXlsxWriterError, "chartsheet was not created");
@@ -47,20 +63,25 @@ chartsheet_init(int argc, VALUE *argv, VALUE self) {
 VALUE
 chartsheet_release(VALUE self) {
   struct chartsheet *ptr;
-  Data_Get_Struct(self, struct chartsheet, ptr);
+  TypedData_Get_Struct(self, struct chartsheet, &chartsheet_type, ptr);
 
-  chartsheet_free(ptr);
+  chartsheet_clear(ptr);
   return self;
 }
 
 void
-chartsheet_free(void *p) {
+chartsheet_clear(void *p) {
   struct chartsheet *ptr = p;
 
   if (ptr->chartsheet)
     ptr->chartsheet = NULL;
 }
 
+void
+chartsheet_free(void *p) {
+  chartsheet_clear(p);
+  ruby_xfree(p);
+}
 
 /*  call-seq: cs.activate -> self
  *
@@ -79,7 +100,7 @@ chartsheet_activate_(VALUE self) {
 VALUE
 chartsheet_set_chart_(VALUE self, VALUE chart) {
   struct chart *chart_ptr;
-  Data_Get_Struct(chart, struct chart, chart_ptr);
+  TypedData_Get_Struct(chart, struct chart, &chart_type, chart_ptr);
 
   LXW_ERR_RESULT_CALL(chartsheet, set_chart, chart_ptr->chart);
   return self;
@@ -139,7 +160,7 @@ chartsheet_set_footer_(int argc, VALUE *argv, VALUE self) {
   rb_check_arity(argc, 1, 2);
   struct _header_options ho = _extract_header_options(argc, argv);
   struct chartsheet *ptr;
-  Data_Get_Struct(self, struct chartsheet, ptr);
+  TypedData_Get_Struct(self, struct chartsheet, &chartsheet_type, ptr);
   lxw_error err;
   if (!ho.with_options) {
     err = chartsheet_set_footer(ptr->chartsheet, ho.str);
@@ -169,7 +190,7 @@ chartsheet_set_header_(int argc, VALUE *argv, VALUE self) {
   rb_check_arity(argc, 1, 2);
   struct _header_options ho = _extract_header_options(argc, argv);
   struct chartsheet *ptr;
-  Data_Get_Struct(self, struct chartsheet, ptr);
+  TypedData_Get_Struct(self, struct chartsheet, &chartsheet_type, ptr);
   lxw_error err;
   if (!ho.with_options) {
     err = chartsheet_set_header(ptr->chartsheet, ho.str);
@@ -236,7 +257,7 @@ chartsheet_set_zoom_(VALUE self, VALUE val) {
 VALUE
 chartsheet_get_horizontal_dpi_(VALUE self) {
   struct chartsheet *ptr;
-  Data_Get_Struct(self, struct chartsheet, ptr);
+  TypedData_Get_Struct(self, struct chartsheet, &chartsheet_type, ptr);
   return INT2NUM(ptr->chartsheet->worksheet->horizontal_dpi);
 }
 
@@ -247,7 +268,7 @@ chartsheet_get_horizontal_dpi_(VALUE self) {
 VALUE
 chartsheet_set_horizontal_dpi_(VALUE self, VALUE val) {
   struct chartsheet *ptr;
-  Data_Get_Struct(self, struct chartsheet, ptr);
+  TypedData_Get_Struct(self, struct chartsheet, &chartsheet_type, ptr);
   ptr->chartsheet->worksheet->horizontal_dpi = NUM2INT(val);
   return val;
 }
@@ -259,7 +280,7 @@ chartsheet_set_horizontal_dpi_(VALUE self, VALUE val) {
 VALUE
 chartsheet_get_vertical_dpi_(VALUE self) {
   struct chartsheet *ptr;
-  Data_Get_Struct(self, struct chartsheet, ptr);
+  TypedData_Get_Struct(self, struct chartsheet, &chartsheet_type, ptr);
   return INT2NUM(ptr->chartsheet->worksheet->vertical_dpi);
 }
 
@@ -270,7 +291,7 @@ chartsheet_get_vertical_dpi_(VALUE self) {
 VALUE
 chartsheet_set_vertical_dpi_(VALUE self, VALUE val) {
   struct chartsheet *ptr;
-  Data_Get_Struct(self, struct chartsheet, ptr);
+  TypedData_Get_Struct(self, struct chartsheet, &chartsheet_type, ptr);
   ptr->chartsheet->worksheet->vertical_dpi = NUM2INT(val);
   return val;
 }

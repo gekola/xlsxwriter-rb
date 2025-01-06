@@ -15,16 +15,30 @@
 
 VALUE cWorkbook;
 
+void workbook_clear(void *p);
 void workbook_free(void *p);
 VALUE workbook_release(VALUE self);
 
+size_t
+workbook_size(const void *data) {
+  return sizeof(struct workbook);
+}
+
+const rb_data_type_t workbook_type = {
+	.wrap_struct_name = "workbook",
+	.function = {
+		.dmark = NULL,
+		.dfree = workbook_free,
+		.dsize = workbook_size,
+	},
+	.data = NULL,
+	.flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
 
 VALUE
 workbook_alloc(VALUE klass) {
-  VALUE obj;
   struct workbook *ptr;
-
-  obj = Data_Make_Struct(klass, struct workbook, NULL, workbook_free, ptr);
+  VALUE obj = TypedData_Make_Struct(klass, struct workbook, &workbook_type, ptr);
 
   ptr->path = NULL;
   ptr->workbook = NULL;
@@ -89,7 +103,7 @@ workbook_init(int argc, VALUE *argv, VALUE self) {
     }
   }
 
-  Data_Get_Struct(self, struct workbook, ptr);
+  TypedData_Get_Struct(self, struct workbook, &workbook_type, ptr);
 
   size_t len = RSTRING_LEN(argv[0]);
   ptr->path = malloc(len + 1);
@@ -120,14 +134,14 @@ workbook_init(int argc, VALUE *argv, VALUE self) {
 VALUE
 workbook_release(VALUE self) {
   struct workbook *ptr;
-  Data_Get_Struct(self, struct workbook, ptr);
+  TypedData_Get_Struct(self, struct workbook, &workbook_type, ptr);
 
-  workbook_free(ptr);
+  workbook_clear(ptr);
   return self;
 }
 
 void
-workbook_free(void *p) {
+workbook_clear(void *p) {
   struct workbook *ptr = p;
 
   if (ptr->workbook) {
@@ -169,6 +183,11 @@ workbook_free(void *p) {
   }
 }
 
+void workbook_free(void *p) {
+  workbook_clear(p);
+  ruby_xfree(p);
+};
+
 /* call-seq:
  *    wb.add_worksheet([name]) -> ws
  *    wb.add_worksheet([name]) { |ws| block } -> obj
@@ -188,7 +207,7 @@ workbook_add_worksheet_(int argc, VALUE *argv, VALUE self) {
   rb_check_arity(argc, 0, 1);
 
   struct workbook *ptr;
-  Data_Get_Struct(self, struct workbook, ptr);
+  TypedData_Get_Struct(self, struct workbook, &workbook_type, ptr);
   if (ptr->workbook) {
     worksheet = rb_funcall(cWorksheet, rb_intern("new"), argc + 1, self, argv[0]);
   }
@@ -220,7 +239,7 @@ workbook_add_chartsheet_(int argc, VALUE *argv, VALUE self) {
   rb_check_arity(argc, 0, 1);
 
   struct workbook *ptr;
-  Data_Get_Struct(self, struct workbook, ptr);
+  TypedData_Get_Struct(self, struct workbook, &workbook_type, ptr);
   if (ptr->workbook) {
     chartsheet = rb_funcall(cChartsheet, rb_intern("new"), argc + 1, self, argv[0]);
   }
@@ -268,7 +287,7 @@ VALUE
 workbook_add_format_(VALUE self, VALUE key, VALUE opts) {
   struct workbook *ptr;
   lxw_format *format;
-  Data_Get_Struct(self, struct workbook, ptr);
+  TypedData_Get_Struct(self, struct workbook, &workbook_type, ptr);
 
   if (!ptr->formats) {
     ptr->formats = st_init_numtable();
@@ -335,7 +354,7 @@ workbook_add_vba_project_(VALUE self, VALUE filename) {
 VALUE
 workbook_set_default_xf_indices_(VALUE self) {
   struct workbook *ptr;
-  Data_Get_Struct(self, struct workbook, ptr);
+  TypedData_Get_Struct(self, struct workbook, &workbook_type, ptr);
   lxw_workbook_set_default_xf_indices(ptr->workbook);
   return self;
 }
@@ -385,7 +404,7 @@ VALUE
 workbook_unset_default_url_format_(VALUE self) {
   struct workbook *ptr;
 
-  Data_Get_Struct(self, struct workbook, ptr);
+  TypedData_Get_Struct(self, struct workbook, &workbook_type, ptr);
   workbook_unset_default_url_format(ptr->workbook);
 
   return self;
@@ -396,7 +415,7 @@ workbook_unset_default_url_format_(VALUE self) {
 VALUE
 workbook_max_url_length_(VALUE self) {
   struct workbook *ptr;
-  Data_Get_Struct(self, struct workbook, ptr);
+  TypedData_Get_Struct(self, struct workbook, &workbook_type, ptr);
   return INT2NUM(ptr->workbook->max_url_length);
 }
 
@@ -406,7 +425,7 @@ VALUE
 workbook_max_url_length_set_(VALUE self, VALUE value) {
   struct workbook *ptr;
 
-  Data_Get_Struct(self, struct workbook, ptr);
+  TypedData_Get_Struct(self, struct workbook, &workbook_type, ptr);
 
   ptr->workbook->max_url_length = NUM2INT(value);
 
@@ -422,7 +441,7 @@ VALUE
 workbook_sst_(VALUE self) {
   struct workbook *ptr;
 
-  Data_Get_Struct(self, struct workbook, ptr);
+  TypedData_Get_Struct(self, struct workbook, &workbook_type, ptr);
 
   return alloc_shared_strings_table_by_ref(ptr->workbook->sst);
 }
@@ -450,7 +469,7 @@ workbook_get_format(VALUE self, VALUE key) {
   if (NIL_P(key))
     return NULL;
 
-  Data_Get_Struct(self, struct workbook, ptr);
+  TypedData_Get_Struct(self, struct workbook, &workbook_type, ptr);
 
   if (!ptr->formats)
     return NULL;

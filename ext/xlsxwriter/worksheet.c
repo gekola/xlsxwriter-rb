@@ -7,7 +7,24 @@
 
 VALUE cWorksheet;
 
+void worksheet_clear(void *p);
 void worksheet_free(void *p);
+
+size_t worksheet_size(const void *data) {
+  return sizeof(struct worksheet);
+}
+
+const rb_data_type_t worksheet_type = {
+    .wrap_struct_name = "worksheet",
+    .function =
+        {
+            .dmark = NULL,
+            .dfree = worksheet_free,
+            .dsize = worksheet_size,
+        },
+    .data = NULL,
+    .flags = RUBY_TYPED_FREE_IMMEDIATELY,
+};
 
 
 VALUE
@@ -15,7 +32,7 @@ worksheet_alloc(VALUE klass) {
   VALUE obj;
   struct worksheet *ptr;
 
-  obj = Data_Make_Struct(klass, struct worksheet, NULL, worksheet_free, ptr);
+  obj = TypedData_Make_Struct(klass, struct worksheet, &worksheet_type, ptr);
 
   ptr->worksheet = NULL;
 
@@ -31,7 +48,7 @@ worksheet_init(int argc, VALUE *argv, VALUE self) {
   struct workbook *wb_ptr;
   struct worksheet *ptr;
 
-  Data_Get_Struct(self, struct worksheet, ptr);
+  TypedData_Get_Struct(self, struct worksheet, &worksheet_type, ptr);
 
   rb_check_arity(argc, 1, 2);
   if (argc == 2) {
@@ -66,7 +83,7 @@ worksheet_init(int argc, VALUE *argv, VALUE self) {
   rb_iv_set(self, "@use_auto_width", auto_width);
   rb_iv_set(self, "@col_auto_widths", rb_ary_new());
 
-  Data_Get_Struct(argv[0], struct workbook, wb_ptr);
+  TypedData_Get_Struct(argv[0], struct workbook, &workbook_type, wb_ptr);
   ptr->worksheet = workbook_add_worksheet(wb_ptr->workbook, name);
   if (!ptr->worksheet)
     rb_raise(eXlsxWriterError, "worksheet was not created");
@@ -77,19 +94,25 @@ worksheet_init(int argc, VALUE *argv, VALUE self) {
 VALUE
 worksheet_release(VALUE self) {
   struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
+  TypedData_Get_Struct(self, struct worksheet, &worksheet_type, ptr);
 
-  worksheet_free(ptr);
+  worksheet_clear(ptr);
   return self;
 }
 
 void
-worksheet_free(void *p) {
+worksheet_clear(void *p) {
   struct worksheet *ptr = p;
 
   if (ptr->worksheet) {
     ptr->worksheet = NULL;
   }
+}
+
+void
+worksheet_free(void *p) {
+  worksheet_clear(p);
+  ruby_xfree(p);
 }
 
 /*  call-seq:
@@ -314,7 +337,7 @@ worksheet_write_url_(int argc, VALUE *argv, VALUE self) {
   struct worksheet *ptr;
   VALUE workbook = rb_iv_get(self, "@workbook");
   lxw_format *format = workbook_get_format(workbook, format_key);
-  Data_Get_Struct(self, struct worksheet, ptr);
+  TypedData_Get_Struct(self, struct worksheet, &worksheet_type, ptr);
   if (string || tooltip) {
     worksheet_write_url_opt(ptr->worksheet, row, col, url_str, format, string, tooltip);
   } else {
@@ -500,7 +523,7 @@ worksheet_set_row_(VALUE self, VALUE row, VALUE opts) {
     options.level = NUM2INT(val);
 
   struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
+  TypedData_Get_Struct(self, struct worksheet, &worksheet_type, ptr);
   if (options.hidden || options.collapsed || options.level) {
     worksheet_set_row_opt(ptr->worksheet, NUM2INT(row), height, format, &options);
   } else {
@@ -547,7 +570,7 @@ worksheet_set_column_(VALUE self, VALUE col_from, VALUE col_to, VALUE opts) {
     options.level = NUM2INT(val);
 
   struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
+  TypedData_Get_Struct(self, struct worksheet, &worksheet_type, ptr);
   if (options.hidden || options.collapsed || options.level) {
     worksheet_set_column_opt(ptr->worksheet, col1, col2, width, format, &options);
   } else {
@@ -589,7 +612,7 @@ worksheet_insert_image_(int argc, VALUE *argv, VALUE self) {
   }
 
   struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
+  TypedData_Get_Struct(self, struct worksheet, &worksheet_type, ptr);
 
   if (!NIL_P(opts)) {
     options = val_to_lxw_image_options(opts, &with_options);
@@ -634,7 +657,7 @@ worksheet_insert_image_buffer_(int argc, VALUE *argv, VALUE self) {
     ++larg;
   }
   struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
+  TypedData_Get_Struct(self, struct worksheet, &worksheet_type, ptr);
 
   if (!NIL_P(opts)) {
     options = val_to_lxw_image_options(opts, &with_options);
@@ -688,8 +711,8 @@ worksheet_insert_chart_(int argc, VALUE *argv, VALUE self) {
 
   struct worksheet *ptr;
   struct chart *chart_ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
-  Data_Get_Struct(chart, struct chart, chart_ptr);
+  TypedData_Get_Struct(self, struct worksheet, &worksheet_type, ptr);
+  TypedData_Get_Struct(chart, struct chart, &chart_type, chart_ptr);
 
   if (with_options) {
     worksheet_insert_chart_opt(ptr->worksheet, row, col, chart_ptr->chart, &options);
@@ -820,7 +843,7 @@ worksheet_freeze_panes_(int argc, VALUE *argv, VALUE self) {
   rb_check_arity(argc, 1, 5);
   int larg = extract_cell(argc, argv, &row, &col);
   struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
+  TypedData_Get_Struct(self, struct worksheet, &worksheet_type, ptr);
   if (larg >= argc) {
     worksheet_freeze_panes(ptr->worksheet, row, col);
   } else {
@@ -928,7 +951,7 @@ worksheet_set_header_(int argc, VALUE *argv, VALUE self) {
   rb_check_arity(argc, 1, 2);
   struct _header_options ho = _extract_header_options(argc, argv);
   struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
+  TypedData_Get_Struct(self, struct worksheet, &worksheet_type, ptr);
   lxw_error err;
   if (!ho.with_options) {
     err = worksheet_set_header(ptr->worksheet, ho.str);
@@ -948,7 +971,7 @@ worksheet_set_footer_(int argc, VALUE *argv, VALUE self) {
   struct worksheet *ptr;
   rb_check_arity(argc, 1, 2);
   struct _header_options ho = _extract_header_options(argc, argv);
-  Data_Get_Struct(self, struct worksheet, ptr);
+  TypedData_Get_Struct(self, struct worksheet, &worksheet_type, ptr);
   lxw_error err;
   if (!ho.with_options) {
     err = worksheet_set_footer(ptr->worksheet, ho.str);
@@ -1194,7 +1217,7 @@ worksheet_set_default_row_(VALUE self, VALUE height, VALUE hide_unused_rows) {
 VALUE
 worksheet_get_horizontal_dpi_(VALUE self) {
   struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
+  TypedData_Get_Struct(self, struct worksheet, &worksheet_type, ptr);
   return INT2NUM(ptr->worksheet->horizontal_dpi);
 }
 
@@ -1205,7 +1228,7 @@ worksheet_get_horizontal_dpi_(VALUE self) {
 VALUE
 worksheet_set_horizontal_dpi_(VALUE self, VALUE val) {
   struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
+  TypedData_Get_Struct(self, struct worksheet, &worksheet_type, ptr);
   ptr->worksheet->horizontal_dpi = NUM2INT(val);
   return val;
 }
@@ -1217,7 +1240,7 @@ worksheet_set_horizontal_dpi_(VALUE self, VALUE val) {
 VALUE
 worksheet_get_vertical_dpi_(VALUE self) {
   struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
+  TypedData_Get_Struct(self, struct worksheet, &worksheet_type, ptr);
   return INT2NUM(ptr->worksheet->vertical_dpi);
 }
 
@@ -1228,7 +1251,7 @@ worksheet_get_vertical_dpi_(VALUE self) {
 VALUE
 worksheet_set_vertical_dpi_(VALUE self, VALUE val) {
   struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
+  TypedData_Get_Struct(self, struct worksheet, &worksheet_type, ptr);
   ptr->worksheet->vertical_dpi = NUM2INT(val);
   return val;
 }
@@ -1379,7 +1402,7 @@ worksheet_data_validation_(int argc, VALUE *argv, VALUE self) {
 #undef parse_value
 
   struct worksheet *ptr;
-  Data_Get_Struct(self, struct worksheet, ptr);
+  TypedData_Get_Struct(self, struct worksheet, &worksheet_type, ptr);
   lxw_error err;
   if (range) {
     err = worksheet_data_validation_range(ptr->worksheet, row, col, row2, col2, &data_validation);
