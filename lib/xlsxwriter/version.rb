@@ -2,5 +2,5 @@
 
 module XlsxWriter
   # :nodoc:
-  VERSION = '0.2.3.pre.1'
+  VERSION = '0.2.3'
 end
