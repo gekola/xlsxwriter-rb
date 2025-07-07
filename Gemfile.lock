@@ -25,6 +25,3 @@ DEPENDENCIES
   rubyzip (~> 2.3)
   test-unit (~> 3.2)
   xlsxwriter!
-
-BUNDLED WITH
-   2.6.7
