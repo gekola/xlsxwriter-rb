@@ -19,10 +19,20 @@ permissions:
 jobs:
   test:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        ruby-version: ['2.6', '2.7', '3.2', '3.3', '3.4']
+        os: [ubuntu-latest]
+        ruby-version: ['2.6', '2.7', '3.2', '3.3', '3.4', 'head']
+        include:
+          - os: windows-latest
+            ruby-version: '3.4'
+          - os: windows-latest
+            ruby-version: 'head'
+          - os: macos-latest
+            ruby-version: '3.4'
+          - os: macos-latest
+            ruby-version: 'head'
 
     steps:
     - uses: actions/checkout@v4
